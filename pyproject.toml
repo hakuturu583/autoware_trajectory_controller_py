@@ -34,9 +34,6 @@ wheel.packages = ["python/autoware_trajectory_controller"]
 install.components = ["python"]
 sdist.exclude = ["build", ".venv"]
 
-[tool.scikit-build.cmake.define]
-AUTOWARE_TC_WITH_OSQP = "ON"
-
 [tool.uv]
 # Rebuild the extension whenever the C++ sources change.
 cache-keys = [

@@ -8,7 +8,6 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-option(AUTOWARE_TC_WITH_OSQP "Build the OSQP based QP solver of the MPC" ON)
 option(AUTOWARE_TC_BUILD_PYTHON "Build the Python extension module" ON)
 
 include(cmake/Dependencies.cmake)
@@ -73,15 +72,12 @@ set(AUTOWARE_SOURCES
   src/trajectory_follower.cpp
 )
 
-if(AUTOWARE_TC_WITH_OSQP)
-  list(APPEND AUTOWARE_SOURCES
-    ${CORE}/autoware_osqp_interface/src/csc_matrix_conv.cpp
-    ${CORE}/autoware_osqp_interface/src/osqp_interface.cpp
-    ${UNIVERSE}/autoware_mpc_lateral_controller/src/qp_solver/qp_solver_osqp.cpp
-  )
-else()
-  list(APPEND AUTOWARE_SOURCES src/qp_solver_osqp_unavailable.cpp)
-endif()
+# OSQP is always required: mpc_lateral_controller.cpp includes the OSQP solver header.
+list(APPEND AUTOWARE_SOURCES
+  ${CORE}/autoware_osqp_interface/src/csc_matrix_conv.cpp
+  ${CORE}/autoware_osqp_interface/src/osqp_interface.cpp
+  ${UNIVERSE}/autoware_mpc_lateral_controller/src/qp_solver/qp_solver_osqp.cpp
+)
 
 add_library(autoware_control_core STATIC ${AUTOWARE_SOURCES})
 target_include_directories(autoware_control_core
@@ -105,11 +101,8 @@ target_include_directories(autoware_control_core
     ${UNIVERSE}/autoware_pure_pursuit/include
 )
 target_link_libraries(autoware_control_core PUBLIC Eigen3::Eigen)
-if(AUTOWARE_TC_WITH_OSQP)
-  target_include_directories(autoware_control_core SYSTEM PUBLIC ${OSQP_PREFIXED_INCLUDE_DIR})
-  target_link_libraries(autoware_control_core PUBLIC osqpstatic)
-  target_compile_definitions(autoware_control_core PUBLIC AUTOWARE_TC_WITH_OSQP=1)
-endif()
+target_include_directories(autoware_control_core SYSTEM PUBLIC ${OSQP_PREFIXED_INCLUDE_DIR})
+target_link_libraries(autoware_control_core PUBLIC osqpstatic)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   # Upstream code is warning-clean with its own flags; keep the vendored build quiet.
   target_compile_options(autoware_control_core PRIVATE -w)

@@ -21,23 +21,21 @@ if(NOT TARGET Eigen3::Eigen)
 endif()
 
 # ---- OSQP 0.6.x (same major version as Autoware's osqp_vendor) ----------------
-if(AUTOWARE_TC_WITH_OSQP)
-  set(OSQP_BUILD_DEMO_EXE OFF CACHE BOOL "" FORCE)
-  set(UNITTESTS OFF CACHE BOOL "" FORCE)
-  set(PRINTING ON CACHE BOOL "" FORCE)
-  set(PROFILING ON CACHE BOOL "" FORCE)
-  set(CTRLC OFF CACHE BOOL "" FORCE)
-  FetchContent_Declare(
-    osqp
-    GIT_REPOSITORY https://github.com/osqp/osqp.git
-    GIT_TAG v0.6.3
-    GIT_SHALLOW TRUE
-    GIT_SUBMODULES lin_sys/direct/qdldl/qdldl_sources
-  )
-  FetchContent_MakeAvailable(osqp)
-  # Autoware includes "osqp/osqp.h": expose the headers under an `osqp/` prefix.
-  set(OSQP_PREFIXED_INCLUDE_DIR "${CMAKE_BINARY_DIR}/osqp_include")
-  file(GLOB _osqp_headers "${osqp_SOURCE_DIR}/include/*.h")
-  file(COPY ${_osqp_headers} DESTINATION "${OSQP_PREFIXED_INCLUDE_DIR}/osqp")
-  set_target_properties(osqp PROPERTIES EXCLUDE_FROM_ALL TRUE)
-endif()
+set(OSQP_BUILD_DEMO_EXE OFF CACHE BOOL "" FORCE)
+set(UNITTESTS OFF CACHE BOOL "" FORCE)
+set(PRINTING ON CACHE BOOL "" FORCE)
+set(PROFILING ON CACHE BOOL "" FORCE)
+set(CTRLC OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+  osqp
+  GIT_REPOSITORY https://github.com/osqp/osqp.git
+  GIT_TAG v0.6.3
+  GIT_SHALLOW TRUE
+  GIT_SUBMODULES lin_sys/direct/qdldl/qdldl_sources
+)
+FetchContent_MakeAvailable(osqp)
+# Autoware includes "osqp/osqp.h": expose the headers under an `osqp/` prefix.
+set(OSQP_PREFIXED_INCLUDE_DIR "${CMAKE_BINARY_DIR}/osqp_include")
+file(GLOB _osqp_headers "${osqp_SOURCE_DIR}/include/*.h")
+file(COPY ${_osqp_headers} DESTINATION "${OSQP_PREFIXED_INCLUDE_DIR}/osqp")
+set_target_properties(osqp PROPERTIES EXCLUDE_FROM_ALL TRUE)

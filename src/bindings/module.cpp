@@ -370,13 +370,6 @@ PYBIND11_MODULE(_core, m)
     py::arg("handler"),
     "Route controller logs to `handler(level: int, logger_name: str, message: str)` "
     "(levels follow Python's logging module). None restores printing to stderr.");
-  m.attr("__autoware_with_osqp__") =
-#ifdef AUTOWARE_TC_WITH_OSQP
-    true;
-#else
-    false;
-#endif
-
   // Release the Python callable before interpreter shutdown.
   auto atexit = py::module_::import("atexit");
   atexit.attr("register")(py::cpp_function([]() {
