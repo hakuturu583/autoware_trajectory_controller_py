@@ -1,0 +1,49 @@
+[build-system]
+requires = ["scikit-build-core>=0.10", "pybind11>=2.12"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "autoware-trajectory-controller"
+version = "0.1.0"
+description = "ROS 2-free Python bindings of the Autoware trajectory follower (MPC / pure pursuit / PID)"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.9"
+dependencies = [
+  "numpy>=1.22",
+  "pyyaml>=6.0",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: C++",
+  "License :: OSI Approved :: Apache Software License",
+  "Topic :: Scientific/Engineering",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.5"]
+
+[dependency-groups]
+dev = ["pytest>=7"]
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.version = ">=3.18"
+build-dir = "build/{wheel_tag}"
+wheel.packages = ["python/autoware_trajectory_controller"]
+install.components = ["python"]
+sdist.exclude = ["build", ".venv"]
+
+[tool.uv]
+# Rebuild the extension whenever the C++ sources change.
+cache-keys = [
+  { file = "pyproject.toml" },
+  { file = "CMakeLists.txt" },
+  { file = "cmake/**" },
+  { file = "src/**" },
+  { file = "shim/**" },
+  { file = "third_party/**" },
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
