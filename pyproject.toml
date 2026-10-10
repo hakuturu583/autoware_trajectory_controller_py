@@ -42,7 +42,7 @@ cache-keys = [
   { file = "cmake/**" },
   { file = "src/**" },
   { file = "shim/**" },
-  { file = "third_party/**" },
+  { file = "scripts/fetch_upstream.py" },
 ]
 
 [tool.pytest.ini_options]

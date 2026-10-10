@@ -6,17 +6,17 @@ Python から実行するためのラッパーです。
 - 横方向: **MPC** (`autoware_mpc_lateral_controller`) / **Pure Pursuit** (`autoware_pure_pursuit`)
 - 縦方向: **PID** (`autoware_pid_longitudinal_controller`)
 
-Autoware の C++ ソースは **一切改変せずに** そのままビルドしています。ROS 2 に依存する部分
+Autoware の C++ ソースはビルド時に必要なファイルだけを取得し、**一切改変せずに** そのままビルドしています。ROS 2 に依存する部分
 (`rclcpp` の Node / Clock / Parameter / Logger / Publisher、メッセージ型、`tf2`、
 `diagnostic_updater` など) だけを `shim/` の軽量な再実装で置き換え、pybind11 で Python に公開しています。
 
-依存関係は `uv` だけで完結します (Eigen と OSQP はビルド時に CMake が自動取得します)。
+依存関係は `uv` だけで完結します (Autoware のソース・Eigen・OSQP はビルド時に CMake が自動取得します)。
 
 ## 必要なもの
 
 - [uv](https://docs.astral.sh/uv/)
 - C++17 コンパイラ (GCC 9+ / Clang 10+) と `git`
-- 初回ビルド時のネットワーク接続 (PyPI と、Eigen / OSQP の取得のため)
+- 初回ビルド時のネットワーク接続 (PyPI と、GitHub からの Autoware / OSQP、GitLab からの Eigen の取得のため)
 
 ROS 2・Autoware のワークスペース・Boost・Eigen などのシステムパッケージは不要です。
 
@@ -131,22 +131,26 @@ Python 側のテストは `uv run pytest` です (閉ループでの追従・停
 ## ディレクトリ構成
 
 ```
-third_party/          上流ソース (無改変)。取得元のコミットは third_party/UPSTREAM.md
 shim/include, src/    ROS 2 / tf2 / boost 等の代替実装 (メッセージ型は scripts/gen_msgs.py で生成)
 src/                  TrajectoryFollower (trajectory_follower_node 相当) と pybind11 バインディング
 python/               Python パッケージ (パラメータ、ヘルパー、簡易シミュレータ)
-scripts/              上流ソースの同期・メッセージ型生成スクリプト
+scripts/              上流ソースの取得 (fetch_upstream.py)・メッセージ型生成スクリプト
 examples/, tests/     サンプルとテスト
 ```
 
 ### 上流の更新
 
+Autoware のソースはリポジトリに含めず、ビルド時に `scripts/fetch_upstream.py` が
+`PINS` に固定したコミットから `PACKAGES` に列挙したファイルだけを取得します
+(sparse checkout + partial clone で数 MB 程度。取得先はビルドディレクトリの `third_party/`)。
+
 ```bash
-python scripts/sync_upstream.py --universe ../autoware_universe --core ../autoware_core --utils ../autoware_utils
+# scripts/fetch_upstream.py の PINS (必要なら PACKAGES) を書き換えてから
 python scripts/gen_msgs.py   # メッセージ型を追加・変更した場合
 uv sync && uv run pytest
 ```
 
 ## ライセンス
 
-同梱の Autoware ソースは Apache License 2.0 です (`third_party/*/LICENSE`)。
+ビルドに使う Autoware のソースは Apache License 2.0 です。ライセンス文はインストール先の
+`autoware_trajectory_controller/licenses/` に同梱されます。

@@ -51,11 +51,14 @@ def test_does_not_move_when_not_autonomous():
 
 
 def test_command_is_deterministic():
+    # The default OSQP solver is not bit-reproducible: like Autoware's osqp_vendor it is
+    # built with PROFILING, which makes its adaptive-rho update interval depend on the
+    # measured solve time. The least-squares solver is fully deterministic.
     x, y, v = sine_path()
     traj = atc.make_trajectory(x, y, v)
     results = []
     for _ in range(2):
-        follower = atc.TrajectoryFollower()
+        follower = atc.TrajectoryFollower(parameters={"qp_solver_type": "unconstraint_fast"})
         sim = atc.SimpleVehicleSimulator(dt=follower.ctrl_period)
         sim.reset(y=0.5)
         log = run_closed_loop(follower, traj, sim, duration=5.0)
