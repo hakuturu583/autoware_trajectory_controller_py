@@ -45,16 +45,9 @@ public:
     d.ns_ = ns;
     return d;
   }
-  static Duration max() { return from_nanoseconds(INT64_MAX); }
 
   double seconds() const { return static_cast<double>(ns_) * 1e-9; }
   int64_t nanoseconds() const { return ns_; }
-  std::chrono::nanoseconds to_chrono() const { return std::chrono::nanoseconds(ns_); }
-  template <class DurationT>
-  DurationT to_chrono() const
-  {
-    return std::chrono::duration_cast<DurationT>(std::chrono::nanoseconds(ns_));
-  }
 
   operator builtin_interfaces::msg::Duration() const  // NOLINT
   {
@@ -119,11 +112,6 @@ public:
   : ns_(static_cast<int64_t>(msg.sec) * 1000000000LL + static_cast<int64_t>(msg.nanosec)),
     clock_type_(clock_type)
   {
-  }
-
-  static Time max(rcl_clock_type_t clock_type = RCL_SYSTEM_TIME)
-  {
-    return Time(INT64_MAX, clock_type);
   }
 
   double seconds() const { return static_cast<double>(ns_) * 1e-9; }

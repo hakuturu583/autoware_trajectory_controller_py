@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__CONTROL__STRUCT_HPP_
 #define SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__CONTROL__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -35,77 +31,5 @@ struct Control
   bool operator!=(const Control & other) const { return !(*this == other); }
 };
 }  // namespace autoware_control_msgs::msg
-
-namespace autoware_control_msgs::msg::builder
-{
-class Init_Control_longitudinal
-{
-public:
-  explicit Init_Control_longitudinal(::autoware_control_msgs::msg::Control & msg) : msg_(msg) {}
-  ::autoware_control_msgs::msg::Control longitudinal(autoware_control_msgs::msg::Longitudinal arg)
-  {
-    msg_.longitudinal = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Control & msg_;
-};
-
-class Init_Control_lateral
-{
-public:
-  explicit Init_Control_lateral(::autoware_control_msgs::msg::Control & msg) : msg_(msg) {}
-  Init_Control_longitudinal lateral(autoware_control_msgs::msg::Lateral arg)
-  {
-    msg_.lateral = std::move(arg);
-    return Init_Control_longitudinal(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Control & msg_;
-};
-
-class Init_Control_control_time
-{
-public:
-  explicit Init_Control_control_time(::autoware_control_msgs::msg::Control & msg) : msg_(msg) {}
-  Init_Control_lateral control_time(builtin_interfaces::msg::Time arg)
-  {
-    msg_.control_time = std::move(arg);
-    return Init_Control_lateral(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Control & msg_;
-};
-
-class Init_Control_stamp
-{
-public:
-  Init_Control_stamp() : msg_(storage_) {}
-  Init_Control_control_time stamp(builtin_interfaces::msg::Time arg)
-  {
-    msg_.stamp = std::move(arg);
-    return Init_Control_control_time(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Control storage_;
-  ::autoware_control_msgs::msg::Control & msg_;
-};
-
-}  // namespace autoware_control_msgs::msg::builder
-
-namespace autoware_control_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_control_msgs::msg::Control>()
-{
-  return autoware_control_msgs::msg::builder::Init_Control_stamp();
-}
-}  // namespace autoware_control_msgs
 
 #endif  // SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__CONTROL__STRUCT_HPP_

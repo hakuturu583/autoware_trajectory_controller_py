@@ -15,7 +15,6 @@ using LogSink = std::function<void(LogLevel, const std::string & name, const std
 
 /// Messages below this level are dropped. Default: Info.
 void set_global_level(LogLevel level);
-LogLevel get_global_level();
 /// Replace the output sink (default: stderr). Passing an empty function restores the default.
 void set_sink(LogSink sink);
 bool is_enabled(LogLevel level);
@@ -37,7 +36,6 @@ public:
   {
     return Logger(name_.empty() ? suffix : name_ + "." + suffix);
   }
-  void set_level(int) {}
 
 private:
   std::string name_;

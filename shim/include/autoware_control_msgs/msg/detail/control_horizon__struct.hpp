@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__CONTROL_HORIZON__STRUCT_HPP_
 #define SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__CONTROL_HORIZON__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -33,63 +29,5 @@ struct ControlHorizon
   bool operator!=(const ControlHorizon & other) const { return !(*this == other); }
 };
 }  // namespace autoware_control_msgs::msg
-
-namespace autoware_control_msgs::msg::builder
-{
-class Init_ControlHorizon_controls
-{
-public:
-  explicit Init_ControlHorizon_controls(::autoware_control_msgs::msg::ControlHorizon & msg) : msg_(msg) {}
-  ::autoware_control_msgs::msg::ControlHorizon controls(std::vector<autoware_control_msgs::msg::Control> arg)
-  {
-    msg_.controls = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::ControlHorizon & msg_;
-};
-
-class Init_ControlHorizon_time_step_ms
-{
-public:
-  explicit Init_ControlHorizon_time_step_ms(::autoware_control_msgs::msg::ControlHorizon & msg) : msg_(msg) {}
-  Init_ControlHorizon_controls time_step_ms(float arg)
-  {
-    msg_.time_step_ms = std::move(arg);
-    return Init_ControlHorizon_controls(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::ControlHorizon & msg_;
-};
-
-class Init_ControlHorizon_stamp
-{
-public:
-  Init_ControlHorizon_stamp() : msg_(storage_) {}
-  Init_ControlHorizon_time_step_ms stamp(builtin_interfaces::msg::Time arg)
-  {
-    msg_.stamp = std::move(arg);
-    return Init_ControlHorizon_time_step_ms(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::ControlHorizon storage_;
-  ::autoware_control_msgs::msg::ControlHorizon & msg_;
-};
-
-}  // namespace autoware_control_msgs::msg::builder
-
-namespace autoware_control_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_control_msgs::msg::ControlHorizon>()
-{
-  return autoware_control_msgs::msg::builder::Init_ControlHorizon_stamp();
-}
-}  // namespace autoware_control_msgs
 
 #endif  // SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__CONTROL_HORIZON__STRUCT_HPP_

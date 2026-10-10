@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__TRAJECTORY__STRUCT_HPP_
 #define SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__TRAJECTORY__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -32,49 +28,5 @@ struct Trajectory
   bool operator!=(const Trajectory & other) const { return !(*this == other); }
 };
 }  // namespace autoware_planning_msgs::msg
-
-namespace autoware_planning_msgs::msg::builder
-{
-class Init_Trajectory_points
-{
-public:
-  explicit Init_Trajectory_points(::autoware_planning_msgs::msg::Trajectory & msg) : msg_(msg) {}
-  ::autoware_planning_msgs::msg::Trajectory points(std::vector<autoware_planning_msgs::msg::TrajectoryPoint> arg)
-  {
-    msg_.points = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::Trajectory & msg_;
-};
-
-class Init_Trajectory_header
-{
-public:
-  Init_Trajectory_header() : msg_(storage_) {}
-  Init_Trajectory_points header(std_msgs::msg::Header arg)
-  {
-    msg_.header = std::move(arg);
-    return Init_Trajectory_points(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::Trajectory storage_;
-  ::autoware_planning_msgs::msg::Trajectory & msg_;
-};
-
-}  // namespace autoware_planning_msgs::msg::builder
-
-namespace autoware_planning_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_planning_msgs::msg::Trajectory>()
-{
-  return autoware_planning_msgs::msg::builder::Init_Trajectory_header();
-}
-}  // namespace autoware_planning_msgs
 
 #endif  // SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__TRAJECTORY__STRUCT_HPP_

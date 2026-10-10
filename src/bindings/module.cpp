@@ -45,19 +45,13 @@ rclcpp::ParameterValue to_parameter_value(const std::string & name, py::handle h
   if (py::isinstance<py::sequence>(h) || py::hasattr(h, "tolist")) {
     py::object seq = py::hasattr(h, "tolist") ? h.attr("tolist")()
                                                : py::reinterpret_borrow<py::object>(h);
-    py::list items(seq);
-    bool all_bool = true, all_int = true, all_num = true, all_str = true;
-    for (auto item : items) {
-      all_bool &= is_py_bool(item);
-      all_int &= is_py_int(item);
-      all_num &= (is_py_int(item) || is_py_float(item));
-      all_str &= py::isinstance<py::str>(item);
+    std::vector<rclcpp::ParameterValue> values;
+    for (auto item : py::list(seq)) values.push_back(to_parameter_value(name, item));
+    try {
+      return rclcpp::make_array_value(values);
+    } catch (const std::invalid_argument &) {
+      // fall through to the error below
     }
-    if (items.size() == 0) return rclcpp::ParameterValue(std::vector<double>{});
-    if (all_bool) return rclcpp::ParameterValue(items.cast<std::vector<bool>>());
-    if (all_int) return rclcpp::ParameterValue(items.cast<std::vector<int64_t>>());
-    if (all_num) return rclcpp::ParameterValue(items.cast<std::vector<double>>());
-    if (all_str) return rclcpp::ParameterValue(items.cast<std::vector<std::string>>());
   }
   throw py::type_error(
     "unsupported value for parameter '" + name + "': " + py::repr(h).cast<std::string>());
@@ -141,42 +135,6 @@ py::dict get_debug_all(const atc::NodeHost & host)
     if (!msg.is_none()) out[py::str(topic)] = msg;
   }
   return out;
-}
-
-template <typename HostT, typename PyClass>
-void bind_host_common(PyClass & c)
-{
-  c.def_property(
-     "time",
-     [](const HostT & h) { return static_cast<double>(h.time_ns()) * 1e-9; },
-     [](HostT & h, double t) { h.set_time_ns(static_cast<int64_t>(std::llround(t * 1e9))); },
-     "Current time [s] of the controller clock. The clock does not advance by itself: set it "
-     "before every control cycle (simulated time).")
-    .def_property(
-      "time_ns", &HostT::time_ns, &HostT::set_time_ns, "Current clock time in nanoseconds.")
-    .def(
-      "get_parameters", [](const HostT & h) { return get_parameters(h); },
-      "All declared parameters as a dict.")
-    .def(
-      "get_parameter", [](const HostT & h, const std::string & n) { return get_parameter(h, n); },
-      py::arg("name"))
-    .def(
-      "set_parameters", [](HostT & h, const py::dict & p) { set_parameters(h, p); },
-      py::arg("parameters"),
-      "Update parameters at runtime (goes through the controller's on-set-parameters callback, "
-      "like `ros2 param set`).")
-    .def(
-      "update_diagnostics", &HostT::update_diagnostics,
-      "Run the diagnostic tasks and return their DiagnosticStatus list.")
-    .def(
-      "debug_topics", [](const HostT & h) { return h.node().get_topic_names(); },
-      "Names of the debug 'topics' the controller publishes to.")
-    .def(
-      "get_debug", [](const HostT & h, const std::string & t) { return get_debug(h, t); },
-      py::arg("topic"), "Last message published on a debug topic (or None).")
-    .def(
-      "get_debug_all", [](const HostT & h) { return get_debug_all(h); },
-      "Dict of every debug topic that has received a message.");
 }
 
 py::object g_log_handler = py::none();
@@ -291,7 +249,31 @@ PYBIND11_MODULE(_core, m)
     });
 
   // ---- controller hosts ------------------------------------------------------------
-  py::class_<atc::LateralController> lat(
+  py::class_<atc::NodeHost>(m, "_NodeHost", "Common interface of the controller hosts.")
+    .def_property(
+      "time", [](const atc::NodeHost & h) { return static_cast<double>(h.time_ns()) * 1e-9; },
+      [](atc::NodeHost & h, double t) { h.set_time_ns(static_cast<int64_t>(std::llround(t * 1e9))); },
+      "Current time [s] of the controller clock. The clock does not advance by itself: set it "
+      "before every control cycle (simulated time).")
+    .def_property(
+      "time_ns", &atc::NodeHost::time_ns, &atc::NodeHost::set_time_ns,
+      "Current clock time in nanoseconds.")
+    .def("get_parameters", &get_parameters, "All declared parameters as a dict.")
+    .def("get_parameter", &get_parameter, py::arg("name"))
+    .def(
+      "set_parameters", &set_parameters, py::arg("parameters"),
+      "Update parameters at runtime (goes through the controller's on-set-parameters callback, "
+      "like `ros2 param set`).")
+    .def(
+      "update_diagnostics", &atc::NodeHost::update_diagnostics,
+      "Run the diagnostic tasks and return their DiagnosticStatus list.")
+    .def(
+      "debug_topics", [](const atc::NodeHost & h) { return h.node().get_topic_names(); },
+      "Names of the debug 'topics' the controller publishes to.")
+    .def("get_debug", &get_debug, py::arg("topic"), "Last message published on a debug topic (or None).")
+    .def("get_debug_all", &get_debug_all, "Dict of every debug topic that has received a message.");
+
+  py::class_<atc::LateralController, atc::NodeHost> lat(
     m, "LateralController",
     "Autoware lateral controller (MPC or pure pursuit) running on a ROS-free node.");
   lat.def(
@@ -304,9 +286,8 @@ PYBIND11_MODULE(_core, m)
     .def("run", &atc::LateralController::run, py::arg("input"))
     .def("sync", &atc::LateralController::sync, py::arg("longitudinal_sync_data"))
     .def("set_steering_offset", &atc::LateralController::set_steering_offset, py::arg("offset"));
-  bind_host_common<atc::LateralController>(lat);
 
-  py::class_<atc::LongitudinalController> lon(
+  py::class_<atc::LongitudinalController, atc::NodeHost> lon(
     m, "LongitudinalController",
     "Autoware longitudinal controller (PID) running on a ROS-free node.");
   lon.def(
@@ -319,9 +300,8 @@ PYBIND11_MODULE(_core, m)
     .def("run", &atc::LongitudinalController::run, py::arg("input"))
     .def("sync", &atc::LongitudinalController::sync, py::arg("lateral_sync_data"))
     .def("reset", &atc::LongitudinalController::reset);
-  bind_host_common<atc::LongitudinalController>(lon);
 
-  py::class_<atc::TrajectoryFollower> follower(
+  py::class_<atc::TrajectoryFollower, atc::NodeHost> follower(
     m, "TrajectoryFollower",
     "ROS-free equivalent of autoware_trajectory_follower_node (lateral + longitudinal).");
   follower
@@ -336,7 +316,6 @@ PYBIND11_MODULE(_core, m)
     .def_property_readonly("lateral_mode", &atc::TrajectoryFollower::lateral_mode)
     .def_property_readonly("longitudinal_mode", &atc::TrajectoryFollower::longitudinal_mode)
     .def_property_readonly("ctrl_period", &atc::TrajectoryFollower::ctrl_period);
-  bind_host_common<atc::TrajectoryFollower>(follower);
 
   // ---- logging ---------------------------------------------------------------------
   m.def(

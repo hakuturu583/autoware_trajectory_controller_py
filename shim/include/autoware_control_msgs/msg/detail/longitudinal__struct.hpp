@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__LONGITUDINAL__STRUCT_HPP_
 #define SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__LONGITUDINAL__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -36,119 +32,5 @@ struct Longitudinal
   bool operator!=(const Longitudinal & other) const { return !(*this == other); }
 };
 }  // namespace autoware_control_msgs::msg
-
-namespace autoware_control_msgs::msg::builder
-{
-class Init_Longitudinal_is_defined_jerk
-{
-public:
-  explicit Init_Longitudinal_is_defined_jerk(::autoware_control_msgs::msg::Longitudinal & msg) : msg_(msg) {}
-  ::autoware_control_msgs::msg::Longitudinal is_defined_jerk(bool arg)
-  {
-    msg_.is_defined_jerk = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Longitudinal & msg_;
-};
-
-class Init_Longitudinal_is_defined_acceleration
-{
-public:
-  explicit Init_Longitudinal_is_defined_acceleration(::autoware_control_msgs::msg::Longitudinal & msg) : msg_(msg) {}
-  Init_Longitudinal_is_defined_jerk is_defined_acceleration(bool arg)
-  {
-    msg_.is_defined_acceleration = std::move(arg);
-    return Init_Longitudinal_is_defined_jerk(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Longitudinal & msg_;
-};
-
-class Init_Longitudinal_jerk
-{
-public:
-  explicit Init_Longitudinal_jerk(::autoware_control_msgs::msg::Longitudinal & msg) : msg_(msg) {}
-  Init_Longitudinal_is_defined_acceleration jerk(float arg)
-  {
-    msg_.jerk = std::move(arg);
-    return Init_Longitudinal_is_defined_acceleration(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Longitudinal & msg_;
-};
-
-class Init_Longitudinal_acceleration
-{
-public:
-  explicit Init_Longitudinal_acceleration(::autoware_control_msgs::msg::Longitudinal & msg) : msg_(msg) {}
-  Init_Longitudinal_jerk acceleration(float arg)
-  {
-    msg_.acceleration = std::move(arg);
-    return Init_Longitudinal_jerk(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Longitudinal & msg_;
-};
-
-class Init_Longitudinal_velocity
-{
-public:
-  explicit Init_Longitudinal_velocity(::autoware_control_msgs::msg::Longitudinal & msg) : msg_(msg) {}
-  Init_Longitudinal_acceleration velocity(float arg)
-  {
-    msg_.velocity = std::move(arg);
-    return Init_Longitudinal_acceleration(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Longitudinal & msg_;
-};
-
-class Init_Longitudinal_control_time
-{
-public:
-  explicit Init_Longitudinal_control_time(::autoware_control_msgs::msg::Longitudinal & msg) : msg_(msg) {}
-  Init_Longitudinal_velocity control_time(builtin_interfaces::msg::Time arg)
-  {
-    msg_.control_time = std::move(arg);
-    return Init_Longitudinal_velocity(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Longitudinal & msg_;
-};
-
-class Init_Longitudinal_stamp
-{
-public:
-  Init_Longitudinal_stamp() : msg_(storage_) {}
-  Init_Longitudinal_control_time stamp(builtin_interfaces::msg::Time arg)
-  {
-    msg_.stamp = std::move(arg);
-    return Init_Longitudinal_control_time(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Longitudinal storage_;
-  ::autoware_control_msgs::msg::Longitudinal & msg_;
-};
-
-}  // namespace autoware_control_msgs::msg::builder
-
-namespace autoware_control_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_control_msgs::msg::Longitudinal>()
-{
-  return autoware_control_msgs::msg::builder::Init_Longitudinal_stamp();
-}
-}  // namespace autoware_control_msgs
 
 #endif  // SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__LONGITUDINAL__STRUCT_HPP_

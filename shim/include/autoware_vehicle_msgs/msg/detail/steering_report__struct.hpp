@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_VEHICLE_MSGS__MSG__DETAIL__STEERING_REPORT__STRUCT_HPP_
 #define SHIM__AUTOWARE_VEHICLE_MSGS__MSG__DETAIL__STEERING_REPORT__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -31,49 +27,5 @@ struct SteeringReport
   bool operator!=(const SteeringReport & other) const { return !(*this == other); }
 };
 }  // namespace autoware_vehicle_msgs::msg
-
-namespace autoware_vehicle_msgs::msg::builder
-{
-class Init_SteeringReport_steering_tire_angle
-{
-public:
-  explicit Init_SteeringReport_steering_tire_angle(::autoware_vehicle_msgs::msg::SteeringReport & msg) : msg_(msg) {}
-  ::autoware_vehicle_msgs::msg::SteeringReport steering_tire_angle(float arg)
-  {
-    msg_.steering_tire_angle = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_vehicle_msgs::msg::SteeringReport & msg_;
-};
-
-class Init_SteeringReport_stamp
-{
-public:
-  Init_SteeringReport_stamp() : msg_(storage_) {}
-  Init_SteeringReport_steering_tire_angle stamp(builtin_interfaces::msg::Time arg)
-  {
-    msg_.stamp = std::move(arg);
-    return Init_SteeringReport_steering_tire_angle(msg_);
-  }
-
-private:
-  ::autoware_vehicle_msgs::msg::SteeringReport storage_;
-  ::autoware_vehicle_msgs::msg::SteeringReport & msg_;
-};
-
-}  // namespace autoware_vehicle_msgs::msg::builder
-
-namespace autoware_vehicle_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_vehicle_msgs::msg::SteeringReport>()
-{
-  return autoware_vehicle_msgs::msg::builder::Init_SteeringReport_stamp();
-}
-}  // namespace autoware_vehicle_msgs
 
 #endif  // SHIM__AUTOWARE_VEHICLE_MSGS__MSG__DETAIL__STEERING_REPORT__STRUCT_HPP_

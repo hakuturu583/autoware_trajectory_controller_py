@@ -2,15 +2,11 @@
 #ifndef SHIM__BUILTIN_INTERFACES__MSG__DETAIL__TIME__STRUCT_HPP_
 #define SHIM__BUILTIN_INTERFACES__MSG__DETAIL__TIME__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -30,49 +26,5 @@ struct Time
   bool operator!=(const Time & other) const { return !(*this == other); }
 };
 }  // namespace builtin_interfaces::msg
-
-namespace builtin_interfaces::msg::builder
-{
-class Init_Time_nanosec
-{
-public:
-  explicit Init_Time_nanosec(::builtin_interfaces::msg::Time & msg) : msg_(msg) {}
-  ::builtin_interfaces::msg::Time nanosec(uint32_t arg)
-  {
-    msg_.nanosec = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::builtin_interfaces::msg::Time & msg_;
-};
-
-class Init_Time_sec
-{
-public:
-  Init_Time_sec() : msg_(storage_) {}
-  Init_Time_nanosec sec(int32_t arg)
-  {
-    msg_.sec = std::move(arg);
-    return Init_Time_nanosec(msg_);
-  }
-
-private:
-  ::builtin_interfaces::msg::Time storage_;
-  ::builtin_interfaces::msg::Time & msg_;
-};
-
-}  // namespace builtin_interfaces::msg::builder
-
-namespace builtin_interfaces
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::builtin_interfaces::msg::Time>()
-{
-  return builtin_interfaces::msg::builder::Init_Time_sec();
-}
-}  // namespace builtin_interfaces
 
 #endif  // SHIM__BUILTIN_INTERFACES__MSG__DETAIL__TIME__STRUCT_HPP_

@@ -2,15 +2,11 @@
 #ifndef SHIM__VISUALIZATION_MSGS__MSG__DETAIL__MARKER_ARRAY__STRUCT_HPP_
 #define SHIM__VISUALIZATION_MSGS__MSG__DETAIL__MARKER_ARRAY__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -30,35 +26,5 @@ struct MarkerArray
   bool operator!=(const MarkerArray & other) const { return !(*this == other); }
 };
 }  // namespace visualization_msgs::msg
-
-namespace visualization_msgs::msg::builder
-{
-class Init_MarkerArray_markers
-{
-public:
-  Init_MarkerArray_markers() : msg_(storage_) {}
-  ::visualization_msgs::msg::MarkerArray markers(std::vector<visualization_msgs::msg::Marker> arg)
-  {
-    msg_.markers = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::visualization_msgs::msg::MarkerArray storage_;
-  ::visualization_msgs::msg::MarkerArray & msg_;
-};
-
-}  // namespace visualization_msgs::msg::builder
-
-namespace visualization_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::visualization_msgs::msg::MarkerArray>()
-{
-  return visualization_msgs::msg::builder::Init_MarkerArray_markers();
-}
-}  // namespace visualization_msgs
 
 #endif  // SHIM__VISUALIZATION_MSGS__MSG__DETAIL__MARKER_ARRAY__STRUCT_HPP_

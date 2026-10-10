@@ -53,6 +53,11 @@ class SimpleVehicleSimulator:
     time: float = 0.0
 
     def __post_init__(self) -> None:
+        self._reset_inputs()
+
+    def _reset_inputs(self) -> None:
+        self._steer_cmd = 0.0
+        self._acc_cmd = 0.0
         self._steer_buffer: deque[float] = deque(
             [0.0] * max(int(round(self.steer_delay / self.dt)), 0)
         )
@@ -60,7 +65,7 @@ class SimpleVehicleSimulator:
 
     def reset(self, x: float = 0.0, y: float = 0.0, yaw: float = 0.0, velocity: float = 0.0) -> None:
         self.state = VehicleState(x=x, y=y, yaw=yaw, velocity=velocity)
-        self.__post_init__()
+        self._reset_inputs()
 
     @staticmethod
     def _delay(buffer: deque[float], value: float) -> float:
@@ -76,21 +81,20 @@ class SimpleVehicleSimulator:
         if control is not None:
             self._steer_cmd = float(control.lateral.steering_tire_angle)
             self._acc_cmd = float(control.longitudinal.acceleration)
-        steer_cmd = self._delay(self._steer_buffer, getattr(self, "_steer_cmd", 0.0))
-        acc_cmd = self._delay(self._acc_buffer, getattr(self, "_acc_cmd", 0.0))
+        steer_cmd = self._delay(self._steer_buffer, self._steer_cmd)
+        acc_cmd = self._delay(self._acc_buffer, self._acc_cmd)
         steer_cmd = max(-self.max_steer, min(self.max_steer, steer_cmd))
 
         s.steering += (steer_cmd - s.steering) * min(dt / self.steer_time_constant, 1.0)
         s.acceleration += (acc_cmd - s.acceleration) * min(dt / self.acc_time_constant, 1.0)
 
-        actual_steer = s.steering + self.steer_bias
         v_prev = s.velocity
         s.velocity += s.acceleration * dt
         # The vehicle does not start reversing because of braking.
         if v_prev >= 0.0 and s.velocity < 0.0 and acc_cmd <= 0.0:
             s.velocity = 0.0
             s.acceleration = 0.0
-        yaw_rate = s.velocity * math.tan(actual_steer) / self.wheel_base
+        yaw_rate = self.yaw_rate
         s.x += s.velocity * math.cos(s.yaw) * dt
         s.y += s.velocity * math.sin(s.yaw) * dt
         s.yaw = math.atan2(math.sin(s.yaw + yaw_rate * dt), math.cos(s.yaw + yaw_rate * dt))

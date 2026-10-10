@@ -2,15 +2,11 @@
 #ifndef SHIM__STD_MSGS__MSG__DETAIL__HEADER__STRUCT_HPP_
 #define SHIM__STD_MSGS__MSG__DETAIL__HEADER__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -31,49 +27,5 @@ struct Header
   bool operator!=(const Header & other) const { return !(*this == other); }
 };
 }  // namespace std_msgs::msg
-
-namespace std_msgs::msg::builder
-{
-class Init_Header_frame_id
-{
-public:
-  explicit Init_Header_frame_id(::std_msgs::msg::Header & msg) : msg_(msg) {}
-  ::std_msgs::msg::Header frame_id(std::string arg)
-  {
-    msg_.frame_id = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::std_msgs::msg::Header & msg_;
-};
-
-class Init_Header_stamp
-{
-public:
-  Init_Header_stamp() : msg_(storage_) {}
-  Init_Header_frame_id stamp(builtin_interfaces::msg::Time arg)
-  {
-    msg_.stamp = std::move(arg);
-    return Init_Header_frame_id(msg_);
-  }
-
-private:
-  ::std_msgs::msg::Header storage_;
-  ::std_msgs::msg::Header & msg_;
-};
-
-}  // namespace std_msgs::msg::builder
-
-namespace std_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::std_msgs::msg::Header>()
-{
-  return std_msgs::msg::builder::Init_Header_stamp();
-}
-}  // namespace std_msgs
 
 #endif  // SHIM__STD_MSGS__MSG__DETAIL__HEADER__STRUCT_HPP_

@@ -33,7 +33,6 @@ public:
 
   rclcpp::Node & node() { return *node_; }
   const rclcpp::Node & node() const { return *node_; }
-  diagnostic_updater::Updater & diag_updater() { return *diag_updater_; }
 
   /// Set the current time of the (simulated) clock in nanoseconds.
   void set_time_ns(int64_t ns) { node_->get_clock()->set_now(rclcpp::Time(ns, RCL_ROS_TIME)); }
@@ -121,10 +120,6 @@ private:
   std::shared_ptr<tf::LongitudinalControllerBase> longitudinal_;
 };
 
-/// Merge lateral and longitudinal horizons (copied from controller_node.cpp).
-std::optional<autoware_control_msgs::msg::ControlHorizon> merge_lat_lon_horizon(
-  const tf::LateralHorizon & lateral_horizon, const tf::LongitudinalHorizon & longitudinal_horizon,
-  const rclcpp::Time & stamp);
 }  // namespace autoware_trajectory_controller
 
 #endif  // AUTOWARE_TRAJECTORY_CONTROLLER__TRAJECTORY_FOLLOWER_HPP_

@@ -2,15 +2,11 @@
 #ifndef SHIM__STD_MSGS__MSG__DETAIL__COLOR_RGBA__STRUCT_HPP_
 #define SHIM__STD_MSGS__MSG__DETAIL__COLOR_RGBA__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -32,77 +28,5 @@ struct ColorRGBA
   bool operator!=(const ColorRGBA & other) const { return !(*this == other); }
 };
 }  // namespace std_msgs::msg
-
-namespace std_msgs::msg::builder
-{
-class Init_ColorRGBA_a
-{
-public:
-  explicit Init_ColorRGBA_a(::std_msgs::msg::ColorRGBA & msg) : msg_(msg) {}
-  ::std_msgs::msg::ColorRGBA a(float arg)
-  {
-    msg_.a = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::std_msgs::msg::ColorRGBA & msg_;
-};
-
-class Init_ColorRGBA_b
-{
-public:
-  explicit Init_ColorRGBA_b(::std_msgs::msg::ColorRGBA & msg) : msg_(msg) {}
-  Init_ColorRGBA_a b(float arg)
-  {
-    msg_.b = std::move(arg);
-    return Init_ColorRGBA_a(msg_);
-  }
-
-private:
-  ::std_msgs::msg::ColorRGBA & msg_;
-};
-
-class Init_ColorRGBA_g
-{
-public:
-  explicit Init_ColorRGBA_g(::std_msgs::msg::ColorRGBA & msg) : msg_(msg) {}
-  Init_ColorRGBA_b g(float arg)
-  {
-    msg_.g = std::move(arg);
-    return Init_ColorRGBA_b(msg_);
-  }
-
-private:
-  ::std_msgs::msg::ColorRGBA & msg_;
-};
-
-class Init_ColorRGBA_r
-{
-public:
-  Init_ColorRGBA_r() : msg_(storage_) {}
-  Init_ColorRGBA_g r(float arg)
-  {
-    msg_.r = std::move(arg);
-    return Init_ColorRGBA_g(msg_);
-  }
-
-private:
-  ::std_msgs::msg::ColorRGBA storage_;
-  ::std_msgs::msg::ColorRGBA & msg_;
-};
-
-}  // namespace std_msgs::msg::builder
-
-namespace std_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::std_msgs::msg::ColorRGBA>()
-{
-  return std_msgs::msg::builder::Init_ColorRGBA_r();
-}
-}  // namespace std_msgs
 
 #endif  // SHIM__STD_MSGS__MSG__DETAIL__COLOR_RGBA__STRUCT_HPP_

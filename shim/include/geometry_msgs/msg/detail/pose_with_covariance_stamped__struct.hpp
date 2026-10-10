@@ -2,15 +2,11 @@
 #ifndef SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE_WITH_COVARIANCE_STAMPED__STRUCT_HPP_
 #define SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE_WITH_COVARIANCE_STAMPED__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -32,49 +28,5 @@ struct PoseWithCovarianceStamped
   bool operator!=(const PoseWithCovarianceStamped & other) const { return !(*this == other); }
 };
 }  // namespace geometry_msgs::msg
-
-namespace geometry_msgs::msg::builder
-{
-class Init_PoseWithCovarianceStamped_pose
-{
-public:
-  explicit Init_PoseWithCovarianceStamped_pose(::geometry_msgs::msg::PoseWithCovarianceStamped & msg) : msg_(msg) {}
-  ::geometry_msgs::msg::PoseWithCovarianceStamped pose(geometry_msgs::msg::PoseWithCovariance arg)
-  {
-    msg_.pose = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::PoseWithCovarianceStamped & msg_;
-};
-
-class Init_PoseWithCovarianceStamped_header
-{
-public:
-  Init_PoseWithCovarianceStamped_header() : msg_(storage_) {}
-  Init_PoseWithCovarianceStamped_pose header(std_msgs::msg::Header arg)
-  {
-    msg_.header = std::move(arg);
-    return Init_PoseWithCovarianceStamped_pose(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::PoseWithCovarianceStamped storage_;
-  ::geometry_msgs::msg::PoseWithCovarianceStamped & msg_;
-};
-
-}  // namespace geometry_msgs::msg::builder
-
-namespace geometry_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::geometry_msgs::msg::PoseWithCovarianceStamped>()
-{
-  return geometry_msgs::msg::builder::Init_PoseWithCovarianceStamped_header();
-}
-}  // namespace geometry_msgs
 
 #endif  // SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE_WITH_COVARIANCE_STAMPED__STRUCT_HPP_

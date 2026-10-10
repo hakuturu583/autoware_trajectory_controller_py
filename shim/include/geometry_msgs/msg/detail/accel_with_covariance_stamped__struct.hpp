@@ -2,15 +2,11 @@
 #ifndef SHIM__GEOMETRY_MSGS__MSG__DETAIL__ACCEL_WITH_COVARIANCE_STAMPED__STRUCT_HPP_
 #define SHIM__GEOMETRY_MSGS__MSG__DETAIL__ACCEL_WITH_COVARIANCE_STAMPED__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -32,49 +28,5 @@ struct AccelWithCovarianceStamped
   bool operator!=(const AccelWithCovarianceStamped & other) const { return !(*this == other); }
 };
 }  // namespace geometry_msgs::msg
-
-namespace geometry_msgs::msg::builder
-{
-class Init_AccelWithCovarianceStamped_accel
-{
-public:
-  explicit Init_AccelWithCovarianceStamped_accel(::geometry_msgs::msg::AccelWithCovarianceStamped & msg) : msg_(msg) {}
-  ::geometry_msgs::msg::AccelWithCovarianceStamped accel(geometry_msgs::msg::AccelWithCovariance arg)
-  {
-    msg_.accel = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::AccelWithCovarianceStamped & msg_;
-};
-
-class Init_AccelWithCovarianceStamped_header
-{
-public:
-  Init_AccelWithCovarianceStamped_header() : msg_(storage_) {}
-  Init_AccelWithCovarianceStamped_accel header(std_msgs::msg::Header arg)
-  {
-    msg_.header = std::move(arg);
-    return Init_AccelWithCovarianceStamped_accel(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::AccelWithCovarianceStamped storage_;
-  ::geometry_msgs::msg::AccelWithCovarianceStamped & msg_;
-};
-
-}  // namespace geometry_msgs::msg::builder
-
-namespace geometry_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::geometry_msgs::msg::AccelWithCovarianceStamped>()
-{
-  return geometry_msgs::msg::builder::Init_AccelWithCovarianceStamped_header();
-}
-}  // namespace geometry_msgs
 
 #endif  // SHIM__GEOMETRY_MSGS__MSG__DETAIL__ACCEL_WITH_COVARIANCE_STAMPED__STRUCT_HPP_

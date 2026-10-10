@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__LATERAL__STRUCT_HPP_
 #define SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__LATERAL__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -34,91 +30,5 @@ struct Lateral
   bool operator!=(const Lateral & other) const { return !(*this == other); }
 };
 }  // namespace autoware_control_msgs::msg
-
-namespace autoware_control_msgs::msg::builder
-{
-class Init_Lateral_is_defined_steering_tire_rotation_rate
-{
-public:
-  explicit Init_Lateral_is_defined_steering_tire_rotation_rate(::autoware_control_msgs::msg::Lateral & msg) : msg_(msg) {}
-  ::autoware_control_msgs::msg::Lateral is_defined_steering_tire_rotation_rate(bool arg)
-  {
-    msg_.is_defined_steering_tire_rotation_rate = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Lateral & msg_;
-};
-
-class Init_Lateral_steering_tire_rotation_rate
-{
-public:
-  explicit Init_Lateral_steering_tire_rotation_rate(::autoware_control_msgs::msg::Lateral & msg) : msg_(msg) {}
-  Init_Lateral_is_defined_steering_tire_rotation_rate steering_tire_rotation_rate(float arg)
-  {
-    msg_.steering_tire_rotation_rate = std::move(arg);
-    return Init_Lateral_is_defined_steering_tire_rotation_rate(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Lateral & msg_;
-};
-
-class Init_Lateral_steering_tire_angle
-{
-public:
-  explicit Init_Lateral_steering_tire_angle(::autoware_control_msgs::msg::Lateral & msg) : msg_(msg) {}
-  Init_Lateral_steering_tire_rotation_rate steering_tire_angle(float arg)
-  {
-    msg_.steering_tire_angle = std::move(arg);
-    return Init_Lateral_steering_tire_rotation_rate(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Lateral & msg_;
-};
-
-class Init_Lateral_control_time
-{
-public:
-  explicit Init_Lateral_control_time(::autoware_control_msgs::msg::Lateral & msg) : msg_(msg) {}
-  Init_Lateral_steering_tire_angle control_time(builtin_interfaces::msg::Time arg)
-  {
-    msg_.control_time = std::move(arg);
-    return Init_Lateral_steering_tire_angle(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Lateral & msg_;
-};
-
-class Init_Lateral_stamp
-{
-public:
-  Init_Lateral_stamp() : msg_(storage_) {}
-  Init_Lateral_control_time stamp(builtin_interfaces::msg::Time arg)
-  {
-    msg_.stamp = std::move(arg);
-    return Init_Lateral_control_time(msg_);
-  }
-
-private:
-  ::autoware_control_msgs::msg::Lateral storage_;
-  ::autoware_control_msgs::msg::Lateral & msg_;
-};
-
-}  // namespace autoware_control_msgs::msg::builder
-
-namespace autoware_control_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_control_msgs::msg::Lateral>()
-{
-  return autoware_control_msgs::msg::builder::Init_Lateral_stamp();
-}
-}  // namespace autoware_control_msgs
 
 #endif  // SHIM__AUTOWARE_CONTROL_MSGS__MSG__DETAIL__LATERAL__STRUCT_HPP_

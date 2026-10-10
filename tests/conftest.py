@@ -22,15 +22,12 @@ def sine_path(length=200.0, amplitude=5.0, wavelength=20.0, speed=8.0, ds=1.0, d
 
 
 def lateral_error(x_ref, y_ref, px, py):
-    """Distance from (px, py) to the reference polyline."""
-    best = np.inf
-    for i in range(len(x_ref) - 1):
-        a = np.array([x_ref[i], y_ref[i]])
-        b = np.array([x_ref[i + 1], y_ref[i + 1]])
-        p = np.array([px, py])
-        t = np.clip(np.dot(p - a, b - a) / np.dot(b - a, b - a), 0.0, 1.0)
-        best = min(best, float(np.linalg.norm(a + t * (b - a) - p)))
-    return best
+    """Distance from each (px, py) to the reference polyline (vectorized over segments)."""
+    a = np.stack([x_ref[:-1], y_ref[:-1]], axis=1)  # (S, 2) segment starts
+    d = np.diff(np.stack([x_ref, y_ref], axis=1), axis=0)  # (S, 2) segment vectors
+    p = np.stack(np.broadcast_arrays(px, py), axis=-1)[..., None, :]  # (..., 1, 2)
+    t = np.clip(np.sum((p - a) * d, axis=-1) / np.sum(d * d, axis=-1), 0.0, 1.0)
+    return np.min(np.linalg.norm(a + t[..., None] * d - p, axis=-1), axis=-1)
 
 
 def run_closed_loop(follower, traj, sim, duration):

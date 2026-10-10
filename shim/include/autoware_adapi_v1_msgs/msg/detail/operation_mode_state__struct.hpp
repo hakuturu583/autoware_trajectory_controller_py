@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_ADAPI_V1_MSGS__MSG__DETAIL__OPERATION_MODE_STATE__STRUCT_HPP_
 #define SHIM__AUTOWARE_ADAPI_V1_MSGS__MSG__DETAIL__OPERATION_MODE_STATE__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -42,133 +38,5 @@ struct OperationModeState
   bool operator!=(const OperationModeState & other) const { return !(*this == other); }
 };
 }  // namespace autoware_adapi_v1_msgs::msg
-
-namespace autoware_adapi_v1_msgs::msg::builder
-{
-class Init_OperationModeState_is_remote_mode_available
-{
-public:
-  explicit Init_OperationModeState_is_remote_mode_available(::autoware_adapi_v1_msgs::msg::OperationModeState & msg) : msg_(msg) {}
-  ::autoware_adapi_v1_msgs::msg::OperationModeState is_remote_mode_available(bool arg)
-  {
-    msg_.is_remote_mode_available = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_adapi_v1_msgs::msg::OperationModeState & msg_;
-};
-
-class Init_OperationModeState_is_local_mode_available
-{
-public:
-  explicit Init_OperationModeState_is_local_mode_available(::autoware_adapi_v1_msgs::msg::OperationModeState & msg) : msg_(msg) {}
-  Init_OperationModeState_is_remote_mode_available is_local_mode_available(bool arg)
-  {
-    msg_.is_local_mode_available = std::move(arg);
-    return Init_OperationModeState_is_remote_mode_available(msg_);
-  }
-
-private:
-  ::autoware_adapi_v1_msgs::msg::OperationModeState & msg_;
-};
-
-class Init_OperationModeState_is_autonomous_mode_available
-{
-public:
-  explicit Init_OperationModeState_is_autonomous_mode_available(::autoware_adapi_v1_msgs::msg::OperationModeState & msg) : msg_(msg) {}
-  Init_OperationModeState_is_local_mode_available is_autonomous_mode_available(bool arg)
-  {
-    msg_.is_autonomous_mode_available = std::move(arg);
-    return Init_OperationModeState_is_local_mode_available(msg_);
-  }
-
-private:
-  ::autoware_adapi_v1_msgs::msg::OperationModeState & msg_;
-};
-
-class Init_OperationModeState_is_stop_mode_available
-{
-public:
-  explicit Init_OperationModeState_is_stop_mode_available(::autoware_adapi_v1_msgs::msg::OperationModeState & msg) : msg_(msg) {}
-  Init_OperationModeState_is_autonomous_mode_available is_stop_mode_available(bool arg)
-  {
-    msg_.is_stop_mode_available = std::move(arg);
-    return Init_OperationModeState_is_autonomous_mode_available(msg_);
-  }
-
-private:
-  ::autoware_adapi_v1_msgs::msg::OperationModeState & msg_;
-};
-
-class Init_OperationModeState_is_in_transition
-{
-public:
-  explicit Init_OperationModeState_is_in_transition(::autoware_adapi_v1_msgs::msg::OperationModeState & msg) : msg_(msg) {}
-  Init_OperationModeState_is_stop_mode_available is_in_transition(bool arg)
-  {
-    msg_.is_in_transition = std::move(arg);
-    return Init_OperationModeState_is_stop_mode_available(msg_);
-  }
-
-private:
-  ::autoware_adapi_v1_msgs::msg::OperationModeState & msg_;
-};
-
-class Init_OperationModeState_is_autoware_control_enabled
-{
-public:
-  explicit Init_OperationModeState_is_autoware_control_enabled(::autoware_adapi_v1_msgs::msg::OperationModeState & msg) : msg_(msg) {}
-  Init_OperationModeState_is_in_transition is_autoware_control_enabled(bool arg)
-  {
-    msg_.is_autoware_control_enabled = std::move(arg);
-    return Init_OperationModeState_is_in_transition(msg_);
-  }
-
-private:
-  ::autoware_adapi_v1_msgs::msg::OperationModeState & msg_;
-};
-
-class Init_OperationModeState_mode
-{
-public:
-  explicit Init_OperationModeState_mode(::autoware_adapi_v1_msgs::msg::OperationModeState & msg) : msg_(msg) {}
-  Init_OperationModeState_is_autoware_control_enabled mode(uint8_t arg)
-  {
-    msg_.mode = std::move(arg);
-    return Init_OperationModeState_is_autoware_control_enabled(msg_);
-  }
-
-private:
-  ::autoware_adapi_v1_msgs::msg::OperationModeState & msg_;
-};
-
-class Init_OperationModeState_stamp
-{
-public:
-  Init_OperationModeState_stamp() : msg_(storage_) {}
-  Init_OperationModeState_mode stamp(builtin_interfaces::msg::Time arg)
-  {
-    msg_.stamp = std::move(arg);
-    return Init_OperationModeState_mode(msg_);
-  }
-
-private:
-  ::autoware_adapi_v1_msgs::msg::OperationModeState storage_;
-  ::autoware_adapi_v1_msgs::msg::OperationModeState & msg_;
-};
-
-}  // namespace autoware_adapi_v1_msgs::msg::builder
-
-namespace autoware_adapi_v1_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_adapi_v1_msgs::msg::OperationModeState>()
-{
-  return autoware_adapi_v1_msgs::msg::builder::Init_OperationModeState_stamp();
-}
-}  // namespace autoware_adapi_v1_msgs
 
 #endif  // SHIM__AUTOWARE_ADAPI_V1_MSGS__MSG__DETAIL__OPERATION_MODE_STATE__STRUCT_HPP_

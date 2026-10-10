@@ -2,15 +2,11 @@
 #ifndef SHIM__GEOMETRY_MSGS__MSG__DETAIL__TRANSFORM_STAMPED__STRUCT_HPP_
 #define SHIM__GEOMETRY_MSGS__MSG__DETAIL__TRANSFORM_STAMPED__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -33,63 +29,5 @@ struct TransformStamped
   bool operator!=(const TransformStamped & other) const { return !(*this == other); }
 };
 }  // namespace geometry_msgs::msg
-
-namespace geometry_msgs::msg::builder
-{
-class Init_TransformStamped_transform
-{
-public:
-  explicit Init_TransformStamped_transform(::geometry_msgs::msg::TransformStamped & msg) : msg_(msg) {}
-  ::geometry_msgs::msg::TransformStamped transform(geometry_msgs::msg::Transform arg)
-  {
-    msg_.transform = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::TransformStamped & msg_;
-};
-
-class Init_TransformStamped_child_frame_id
-{
-public:
-  explicit Init_TransformStamped_child_frame_id(::geometry_msgs::msg::TransformStamped & msg) : msg_(msg) {}
-  Init_TransformStamped_transform child_frame_id(std::string arg)
-  {
-    msg_.child_frame_id = std::move(arg);
-    return Init_TransformStamped_transform(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::TransformStamped & msg_;
-};
-
-class Init_TransformStamped_header
-{
-public:
-  Init_TransformStamped_header() : msg_(storage_) {}
-  Init_TransformStamped_child_frame_id header(std_msgs::msg::Header arg)
-  {
-    msg_.header = std::move(arg);
-    return Init_TransformStamped_child_frame_id(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::TransformStamped storage_;
-  ::geometry_msgs::msg::TransformStamped & msg_;
-};
-
-}  // namespace geometry_msgs::msg::builder
-
-namespace geometry_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::geometry_msgs::msg::TransformStamped>()
-{
-  return geometry_msgs::msg::builder::Init_TransformStamped_header();
-}
-}  // namespace geometry_msgs
 
 #endif  // SHIM__GEOMETRY_MSGS__MSG__DETAIL__TRANSFORM_STAMPED__STRUCT_HPP_

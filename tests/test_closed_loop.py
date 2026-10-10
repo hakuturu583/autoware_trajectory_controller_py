@@ -26,8 +26,8 @@ def test_tracks_sine_path_and_stops(lateral, overrides, max_error):
     assert log[:, 5].all(), "every control cycle should publish a command"
     # Lateral tracking once the initial offset has been absorbed.
     moving = (log[:, 0] > 8.0) & (log[:, 1] < x[-10])
-    errors = [lateral_error(x, y, px, py) for px, py in log[moving][::10, 1:3]]
-    assert max(errors) < max_error
+    errors = lateral_error(x, y, log[moving, 1], log[moving, 2])
+    assert errors.max() < max_error
     # Reaches the reference speed and stops near the end of the trajectory.
     assert log[:, 4].max() == pytest.approx(8.0, abs=0.5)
     assert sim.state.velocity == pytest.approx(0.0, abs=1e-3)

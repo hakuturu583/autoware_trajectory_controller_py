@@ -63,10 +63,12 @@ def main() -> None:
         )
     log = np.array(log)
 
-    # Lateral error against a densely sampled reference.
-    xd = np.linspace(x[0], x[-1], 20000)
-    yd = 5.0 * np.sin(xd / 20.0)
-    err = np.array([np.min(np.hypot(xd - px, yd - py)) for px, py in log[:, 1:3]])
+    # Lateral error: distance to the reference polyline (projection onto every segment).
+    a = np.stack([x[:-1], y[:-1]], axis=1)
+    d = np.diff(np.stack([x, y], axis=1), axis=0)
+    p = log[:, None, 1:3]
+    t = np.clip(np.sum((p - a) * d, axis=-1) / np.sum(d * d, axis=-1), 0.0, 1.0)
+    err = np.min(np.linalg.norm(a + t[..., None] * d - p, axis=-1), axis=1)
     settled = log[:, 0] > 8.0
     print(f"lateral controller : {args.lateral}")
     print(f"max lateral error  : {err[settled].max():.3f} m (after 8 s)")

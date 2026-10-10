@@ -2,15 +2,11 @@
 #ifndef SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE_WITH_COVARIANCE__STRUCT_HPP_
 #define SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE_WITH_COVARIANCE__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -31,49 +27,5 @@ struct PoseWithCovariance
   bool operator!=(const PoseWithCovariance & other) const { return !(*this == other); }
 };
 }  // namespace geometry_msgs::msg
-
-namespace geometry_msgs::msg::builder
-{
-class Init_PoseWithCovariance_covariance
-{
-public:
-  explicit Init_PoseWithCovariance_covariance(::geometry_msgs::msg::PoseWithCovariance & msg) : msg_(msg) {}
-  ::geometry_msgs::msg::PoseWithCovariance covariance(std::array<double, 36> arg)
-  {
-    msg_.covariance = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::PoseWithCovariance & msg_;
-};
-
-class Init_PoseWithCovariance_pose
-{
-public:
-  Init_PoseWithCovariance_pose() : msg_(storage_) {}
-  Init_PoseWithCovariance_covariance pose(geometry_msgs::msg::Pose arg)
-  {
-    msg_.pose = std::move(arg);
-    return Init_PoseWithCovariance_covariance(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::PoseWithCovariance storage_;
-  ::geometry_msgs::msg::PoseWithCovariance & msg_;
-};
-
-}  // namespace geometry_msgs::msg::builder
-
-namespace geometry_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::geometry_msgs::msg::PoseWithCovariance>()
-{
-  return geometry_msgs::msg::builder::Init_PoseWithCovariance_pose();
-}
-}  // namespace geometry_msgs
 
 #endif  // SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE_WITH_COVARIANCE__STRUCT_HPP_

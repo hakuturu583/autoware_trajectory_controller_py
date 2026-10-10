@@ -8,6 +8,8 @@ Autoware launch.
 
 from __future__ import annotations
 
+import copy
+import functools
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -43,10 +45,13 @@ def flatten(params: Mapping[str, Any], prefix: str = "") -> dict[str, Any]:
     return out
 
 
+_YamlLoader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+
+
 def load_param_file(path: str | Path) -> dict[str, Any]:
     """Load a ROS 2 parameter YAML file (``/**: ros__parameters: ...``) as a flat dict."""
     with open(path, encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
+        data = yaml.load(f, Loader=_YamlLoader) or {}
     out: dict[str, Any] = {}
     if isinstance(data, Mapping) and any(
         isinstance(v, Mapping) and "ros__parameters" in v for v in data.values()
@@ -59,25 +64,37 @@ def load_param_file(path: str | Path) -> dict[str, Any]:
     return out
 
 
+@functools.lru_cache(maxsize=None)
+def _parse_bundled(name: str) -> dict[str, Any]:
+    return load_param_file(CONFIG_DIR / f"{name}.param.yaml")
+
+
+def _bundled(name: str) -> dict[str, Any]:
+    """A fresh copy of the bundled ``config/<name>.param.yaml`` (parsed once per process)."""
+    return copy.deepcopy(_parse_bundled(name))
+
+
+def _mode_parameters(mode: str, modes: tuple[str, ...], kind: str) -> dict[str, Any]:
+    if mode not in modes:
+        raise ValueError(f"{kind} mode must be one of {modes}, got {mode!r}")
+    return _bundled(mode)
+
+
 def vehicle_info_parameters() -> dict[str, Any]:
     """Default vehicle description (the Autoware sample vehicle)."""
-    return load_param_file(CONFIG_DIR / "vehicle_info.param.yaml")
+    return _bundled("vehicle_info")
 
 
 def lateral_parameters(mode: str = "mpc") -> dict[str, Any]:
-    if mode not in LATERAL_MODES:
-        raise ValueError(f"lateral mode must be one of {LATERAL_MODES}, got {mode!r}")
-    return load_param_file(CONFIG_DIR / f"{mode}.param.yaml")
+    return _mode_parameters(mode, LATERAL_MODES, "lateral")
 
 
 def longitudinal_parameters(mode: str = "pid") -> dict[str, Any]:
-    if mode not in LONGITUDINAL_MODES:
-        raise ValueError(f"longitudinal mode must be one of {LONGITUDINAL_MODES}, got {mode!r}")
-    return load_param_file(CONFIG_DIR / f"{mode}.param.yaml")
+    return _mode_parameters(mode, LONGITUDINAL_MODES, "longitudinal")
 
 
 def common_parameters() -> dict[str, Any]:
-    params = load_param_file(CONFIG_DIR / "trajectory_follower_node.param.yaml")
+    params = _bundled("trajectory_follower_node")
     params.update(NEAREST_SEARCH_DEFAULTS)
     return params
 

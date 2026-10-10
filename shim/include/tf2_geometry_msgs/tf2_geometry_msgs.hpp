@@ -5,9 +5,7 @@
 // The real header includes tf2_ros (and thereby rclcpp); upstream relies on it.
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/point.hpp"
-#include "geometry_msgs/msg/point32.hpp"
 #include "geometry_msgs/msg/pose.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/quaternion.hpp"
 #include "geometry_msgs/msg/transform.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
@@ -17,7 +15,7 @@
 #include "tf2/LinearMath/Vector3.hpp"
 #include "tf2/convert.hpp"
 #include "tf2/transform_datatypes.hpp"
-#include "tf2_ros/time.hpp"
+#include "tf2_ros/time.hpp"  // geometry.cpp uses tf2_ros::fromMsg via this header
 
 namespace tf2
 {
@@ -91,15 +89,6 @@ inline void fromMsg(const geometry_msgs::msg::Pose & in, Transform & out)
   fromMsg(in.orientation, q);
   out.setRotation(q);
 }
-inline void fromMsg(const geometry_msgs::msg::TransformStamped & in, Stamped<Transform> & out)
-{
-  out.stamp_ = tf2_ros::fromMsg(in.header.stamp);
-  out.frame_id_ = in.header.frame_id;
-  Transform tmp;
-  fromMsg(in.transform, tmp);
-  out.setData(tmp);
-}
-
 // Messages are already "converted"; this lets tf2::convert(msg, tf2_type) work.
 inline const geometry_msgs::msg::Pose & toMsg(const geometry_msgs::msg::Pose & in) { return in; }
 inline const geometry_msgs::msg::Transform & toMsg(const geometry_msgs::msg::Transform & in)
@@ -121,35 +110,7 @@ void convert(const A & a, B & b)
   fromMsg(toMsg(a), b);
 }
 
-// ---- doTransform ---------------------------------------------------------
-inline void doTransform(
-  const geometry_msgs::msg::Point & in, geometry_msgs::msg::Point & out,
-  const geometry_msgs::msg::TransformStamped & transform)
-{
-  Transform t;
-  fromMsg(transform.transform, t);
-  const Vector3 v = t * Vector3(in.x, in.y, in.z);
-  toMsg(v, out);
-}
-inline void doTransform(
-  const geometry_msgs::msg::Point32 & in, geometry_msgs::msg::Point32 & out,
-  const geometry_msgs::msg::TransformStamped & transform)
-{
-  Transform t;
-  fromMsg(transform.transform, t);
-  const Vector3 v = t * Vector3(in.x, in.y, in.z);
-  out.x = static_cast<float>(v.x());
-  out.y = static_cast<float>(v.y());
-  out.z = static_cast<float>(v.z());
-}
-inline void doTransform(
-  const geometry_msgs::msg::Vector3 & in, geometry_msgs::msg::Vector3 & out,
-  const geometry_msgs::msg::TransformStamped & transform)
-{
-  Transform t;
-  fromMsg(transform.transform, t);
-  out = toMsg(t.getBasis() * Vector3(in.x, in.y, in.z));
-}
+// ---- doTransform (only the Pose overload is used upstream) ----------------
 inline void doTransform(
   const geometry_msgs::msg::Pose & in, geometry_msgs::msg::Pose & out,
   const geometry_msgs::msg::TransformStamped & transform)
@@ -159,24 +120,6 @@ inline void doTransform(
   Transform v;
   fromMsg(in, v);
   toMsg(t * v, out);
-}
-inline void doTransform(
-  const geometry_msgs::msg::PoseStamped & in, geometry_msgs::msg::PoseStamped & out,
-  const geometry_msgs::msg::TransformStamped & transform)
-{
-  doTransform(in.pose, out.pose, transform);
-  out.header = transform.header;
-}
-inline void doTransform(
-  const geometry_msgs::msg::TransformStamped & in, geometry_msgs::msg::TransformStamped & out,
-  const geometry_msgs::msg::TransformStamped & transform)
-{
-  Transform t, v;
-  fromMsg(transform.transform, t);
-  fromMsg(in.transform, v);
-  out.transform = toMsg(t * v);
-  out.header = transform.header;
-  out.child_frame_id = in.child_frame_id;
 }
 }  // namespace tf2
 

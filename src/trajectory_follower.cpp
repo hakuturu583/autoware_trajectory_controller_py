@@ -62,6 +62,76 @@ std::vector<T> resampleHorizonByZeroOrderHold(
   }
   return resampled_horizon;
 }
+
+// Copied from Controller::mergeLatLonHorizon (autoware_trajectory_follower_node,
+// third_party/universe/autoware_trajectory_follower_node/src/controller_node.cpp).
+std::optional<autoware_control_msgs::msg::ControlHorizon> merge_lat_lon_horizon(
+  const tf::LateralHorizon & lateral_horizon, const tf::LongitudinalHorizon & longitudinal_horizon,
+  const rclcpp::Time & stamp)
+{
+  if (lateral_horizon.controls.empty() || longitudinal_horizon.controls.empty()) {
+    return std::nullopt;
+  }
+
+  autoware_control_msgs::msg::ControlHorizon control_horizon{};
+  control_horizon.stamp = stamp;
+
+  if (lateral_horizon.controls.size() == 1) {
+    control_horizon.time_step_ms = longitudinal_horizon.time_step_ms;
+    control_horizon.controls.reserve(longitudinal_horizon.controls.size());
+    const auto lateral = lateral_horizon.controls.front();
+    for (const auto & longitudinal : longitudinal_horizon.controls) {
+      autoware_control_msgs::msg::Control control;
+      control.longitudinal = longitudinal;
+      control.lateral = lateral;
+      control.stamp = stamp;
+      control_horizon.controls.push_back(control);
+    }
+    return control_horizon;
+  }
+  if (longitudinal_horizon.controls.size() == 1) {
+    control_horizon.time_step_ms = lateral_horizon.time_step_ms;
+    control_horizon.controls.reserve(lateral_horizon.controls.size());
+    const auto longitudinal = longitudinal_horizon.controls.front();
+    for (const auto & lateral : lateral_horizon.controls) {
+      autoware_control_msgs::msg::Control control;
+      control.longitudinal = longitudinal;
+      control.lateral = lateral;
+      control.stamp = stamp;
+      control_horizon.controls.push_back(control);
+    }
+    return control_horizon;
+  }
+
+  const auto gcd_double = [](const double a, const double b) {
+    const double precision = 1e9;
+    const int int_a = static_cast<int>(round(a * precision));
+    const int int_b = static_cast<int>(round(b * precision));
+    return static_cast<double>(std::gcd(int_a, int_b)) / precision;
+  };
+  const double time_step_ms =
+    gcd_double(lateral_horizon.time_step_ms, longitudinal_horizon.time_step_ms);
+  control_horizon.time_step_ms = time_step_ms;
+
+  const auto lateral_controls = resampleHorizonByZeroOrderHold(
+    lateral_horizon.controls, lateral_horizon.time_step_ms, time_step_ms);
+  const auto longitudinal_controls = resampleHorizonByZeroOrderHold(
+    longitudinal_horizon.controls, longitudinal_horizon.time_step_ms, time_step_ms);
+
+  if (lateral_controls.size() != longitudinal_controls.size()) {
+    return std::nullopt;
+  }
+
+  control_horizon.controls.reserve(lateral_controls.size());
+  for (size_t i = 0; i < lateral_controls.size(); ++i) {
+    autoware_control_msgs::msg::Control control;
+    control.lateral = lateral_controls[i];
+    control.longitudinal = longitudinal_controls[i];
+    control.stamp = stamp;
+    control_horizon.controls.push_back(control);
+  }
+  return control_horizon;
+}
 }  // namespace
 
 NodeHost::NodeHost(const std::string & name, const std::vector<rclcpp::Parameter> & parameters)
@@ -133,15 +203,12 @@ ControlResult TrajectoryFollower::step(const tf::InputData & input)
   // 3. run controllers
   autoware_utils_system::StopWatch<std::chrono::milliseconds> stop_watch;
   stop_watch.tic("lateral");
-  const auto lat_out = lateral_->run(input);
+  auto lat_out = lateral_->run(input);
   result.lateral_processing_time_ms = stop_watch.toc("lateral");
 
   stop_watch.tic("longitudinal");
-  const auto lon_out = longitudinal_->run(input);
+  auto lon_out = longitudinal_->run(input);
   result.longitudinal_processing_time_ms = stop_watch.toc("longitudinal");
-
-  result.lateral_output = lat_out;
-  result.longitudinal_output = lon_out;
 
   // 4. sync with each other controllers
   longitudinal_->sync(lat_out.sync_data);
@@ -150,89 +217,24 @@ ControlResult TrajectoryFollower::step(const tf::InputData & input)
   const auto now = node_->now();
   if ((now - lat_out.control_cmd.stamp).seconds() > timeout_thr_sec_) {
     result.skip_reason = "Lateral control command too old, control_cmd will not be published.";
-    return result;
-  }
-  if ((now - lon_out.control_cmd.stamp).seconds() > timeout_thr_sec_) {
+  } else if ((now - lon_out.control_cmd.stamp).seconds() > timeout_thr_sec_) {
     result.skip_reason =
       "Longitudinal control command too old, control_cmd will not be published.";
-    return result;
-  }
+  } else {
+    // 5. control command
+    result.control_cmd.lateral = lat_out.control_cmd;
+    result.control_cmd.longitudinal = lon_out.control_cmd;
+    result.is_published = true;
 
-  // 5. control command
-  result.control_cmd.lateral = lat_out.control_cmd;
-  result.control_cmd.longitudinal = lon_out.control_cmd;
-  result.is_published = true;
-
-  // 7. experimental topic
-  if (enable_control_cmd_horizon_pub_) {
-    result.control_cmd_horizon =
-      merge_lat_lon_horizon(lat_out.control_cmd_horizon, lon_out.control_cmd_horizon, now);
+    // 7. experimental topic
+    if (enable_control_cmd_horizon_pub_) {
+      result.control_cmd_horizon =
+        merge_lat_lon_horizon(lat_out.control_cmd_horizon, lon_out.control_cmd_horizon, now);
+    }
   }
+  result.lateral_output = std::move(lat_out);
+  result.longitudinal_output = std::move(lon_out);
   return result;
 }
 
-std::optional<autoware_control_msgs::msg::ControlHorizon> merge_lat_lon_horizon(
-  const tf::LateralHorizon & lateral_horizon, const tf::LongitudinalHorizon & longitudinal_horizon,
-  const rclcpp::Time & stamp)
-{
-  if (lateral_horizon.controls.empty() || longitudinal_horizon.controls.empty()) {
-    return std::nullopt;
-  }
-
-  autoware_control_msgs::msg::ControlHorizon control_horizon{};
-  control_horizon.stamp = stamp;
-
-  if (lateral_horizon.controls.size() == 1) {
-    control_horizon.time_step_ms = longitudinal_horizon.time_step_ms;
-    const auto lateral = lateral_horizon.controls.front();
-    for (const auto & longitudinal : longitudinal_horizon.controls) {
-      autoware_control_msgs::msg::Control control;
-      control.longitudinal = longitudinal;
-      control.lateral = lateral;
-      control.stamp = stamp;
-      control_horizon.controls.push_back(control);
-    }
-    return control_horizon;
-  }
-  if (longitudinal_horizon.controls.size() == 1) {
-    control_horizon.time_step_ms = lateral_horizon.time_step_ms;
-    const auto longitudinal = longitudinal_horizon.controls.front();
-    for (const auto & lateral : lateral_horizon.controls) {
-      autoware_control_msgs::msg::Control control;
-      control.longitudinal = longitudinal;
-      control.lateral = lateral;
-      control.stamp = stamp;
-      control_horizon.controls.push_back(control);
-    }
-    return control_horizon;
-  }
-
-  const auto gcd_double = [](const double a, const double b) {
-    const double precision = 1e9;
-    const int int_a = static_cast<int>(round(a * precision));
-    const int int_b = static_cast<int>(round(b * precision));
-    return static_cast<double>(std::gcd(int_a, int_b)) / precision;
-  };
-  const double time_step_ms =
-    gcd_double(lateral_horizon.time_step_ms, longitudinal_horizon.time_step_ms);
-  control_horizon.time_step_ms = time_step_ms;
-
-  const auto lateral_controls = resampleHorizonByZeroOrderHold(
-    lateral_horizon.controls, lateral_horizon.time_step_ms, time_step_ms);
-  const auto longitudinal_controls = resampleHorizonByZeroOrderHold(
-    longitudinal_horizon.controls, longitudinal_horizon.time_step_ms, time_step_ms);
-
-  if (lateral_controls.size() != longitudinal_controls.size()) {
-    return std::nullopt;
-  }
-
-  for (size_t i = 0; i < lateral_controls.size(); ++i) {
-    autoware_control_msgs::msg::Control control;
-    control.lateral = lateral_controls[i];
-    control.longitudinal = longitudinal_controls[i];
-    control.stamp = stamp;
-    control_horizon.controls.push_back(control);
-  }
-  return control_horizon;
-}
 }  // namespace autoware_trajectory_controller

@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_INTERNAL_PLANNING_MSGS__MSG__DETAIL__PATH_WITH_LANE_ID__STRUCT_HPP_
 #define SHIM__AUTOWARE_INTERNAL_PLANNING_MSGS__MSG__DETAIL__PATH_WITH_LANE_ID__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -35,77 +31,5 @@ struct PathWithLaneId
   bool operator!=(const PathWithLaneId & other) const { return !(*this == other); }
 };
 }  // namespace autoware_internal_planning_msgs::msg
-
-namespace autoware_internal_planning_msgs::msg::builder
-{
-class Init_PathWithLaneId_right_bound
-{
-public:
-  explicit Init_PathWithLaneId_right_bound(::autoware_internal_planning_msgs::msg::PathWithLaneId & msg) : msg_(msg) {}
-  ::autoware_internal_planning_msgs::msg::PathWithLaneId right_bound(std::vector<geometry_msgs::msg::Point> arg)
-  {
-    msg_.right_bound = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_internal_planning_msgs::msg::PathWithLaneId & msg_;
-};
-
-class Init_PathWithLaneId_left_bound
-{
-public:
-  explicit Init_PathWithLaneId_left_bound(::autoware_internal_planning_msgs::msg::PathWithLaneId & msg) : msg_(msg) {}
-  Init_PathWithLaneId_right_bound left_bound(std::vector<geometry_msgs::msg::Point> arg)
-  {
-    msg_.left_bound = std::move(arg);
-    return Init_PathWithLaneId_right_bound(msg_);
-  }
-
-private:
-  ::autoware_internal_planning_msgs::msg::PathWithLaneId & msg_;
-};
-
-class Init_PathWithLaneId_points
-{
-public:
-  explicit Init_PathWithLaneId_points(::autoware_internal_planning_msgs::msg::PathWithLaneId & msg) : msg_(msg) {}
-  Init_PathWithLaneId_left_bound points(std::vector<autoware_internal_planning_msgs::msg::PathPointWithLaneId> arg)
-  {
-    msg_.points = std::move(arg);
-    return Init_PathWithLaneId_left_bound(msg_);
-  }
-
-private:
-  ::autoware_internal_planning_msgs::msg::PathWithLaneId & msg_;
-};
-
-class Init_PathWithLaneId_header
-{
-public:
-  Init_PathWithLaneId_header() : msg_(storage_) {}
-  Init_PathWithLaneId_points header(std_msgs::msg::Header arg)
-  {
-    msg_.header = std::move(arg);
-    return Init_PathWithLaneId_points(msg_);
-  }
-
-private:
-  ::autoware_internal_planning_msgs::msg::PathWithLaneId storage_;
-  ::autoware_internal_planning_msgs::msg::PathWithLaneId & msg_;
-};
-
-}  // namespace autoware_internal_planning_msgs::msg::builder
-
-namespace autoware_internal_planning_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_internal_planning_msgs::msg::PathWithLaneId>()
-{
-  return autoware_internal_planning_msgs::msg::builder::Init_PathWithLaneId_header();
-}
-}  // namespace autoware_internal_planning_msgs
 
 #endif  // SHIM__AUTOWARE_INTERNAL_PLANNING_MSGS__MSG__DETAIL__PATH_WITH_LANE_ID__STRUCT_HPP_

@@ -1,4 +1,4 @@
-// ROS-free re-implementation of tf2/utils.hpp (getYaw / getEulerYPR / ...).
+// ROS-free re-implementation of tf2::getYaw.
 #ifndef SHIM__TF2__UTILS_HPP_
 #define SHIM__TF2__UTILS_HPP_
 
@@ -43,27 +43,6 @@ inline double getYaw(const Quaternion & q)
   return yaw;
 }
 
-inline void getEulerYPR(const Quaternion & q, double & yaw, double & pitch, double & roll)
-{
-  const double sqw = q.w() * q.w();
-  const double sqx = q.x() * q.x();
-  const double sqy = q.y() * q.y();
-  const double sqz = q.z() * q.z();
-  const double sarg = -2 * (q.x() * q.z() - q.w() * q.y()) / (sqx + sqy + sqz + sqw);
-  if (sarg <= -0.99999) {
-    pitch = -0.5 * M_PI;
-    roll = 0;
-    yaw = -2 * std::atan2(q.y(), q.x());
-  } else if (sarg >= 0.99999) {
-    pitch = 0.5 * M_PI;
-    roll = 0;
-    yaw = 2 * std::atan2(q.y(), q.x());
-  } else {
-    pitch = std::asin(sarg);
-    roll = std::atan2(2 * (q.y() * q.z() + q.w() * q.x()), sqw - sqx - sqy + sqz);
-    yaw = std::atan2(2 * (q.x() * q.y() + q.w() * q.z()), sqw + sqx - sqy - sqz);
-  }
-}
 }  // namespace impl
 
 template <class A>
@@ -72,17 +51,6 @@ double getYaw(const A & a)
   return impl::getYaw(impl::toQuaternion(a));
 }
 
-template <class A>
-void getEulerYPR(const A & a, double & yaw, double & pitch, double & roll)
-{
-  impl::getEulerYPR(impl::toQuaternion(a), yaw, pitch, roll);
-}
-
-template <class A>
-A getTransformIdentity()
-{
-  return A();
-}
 }  // namespace tf2
 
 #endif  // SHIM__TF2__UTILS_HPP_

@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_INTERNAL_DEBUG_MSGS__MSG__DETAIL__FLOAT64_STAMPED__STRUCT_HPP_
 #define SHIM__AUTOWARE_INTERNAL_DEBUG_MSGS__MSG__DETAIL__FLOAT64_STAMPED__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -31,49 +27,5 @@ struct Float64Stamped
   bool operator!=(const Float64Stamped & other) const { return !(*this == other); }
 };
 }  // namespace autoware_internal_debug_msgs::msg
-
-namespace autoware_internal_debug_msgs::msg::builder
-{
-class Init_Float64Stamped_data
-{
-public:
-  explicit Init_Float64Stamped_data(::autoware_internal_debug_msgs::msg::Float64Stamped & msg) : msg_(msg) {}
-  ::autoware_internal_debug_msgs::msg::Float64Stamped data(double arg)
-  {
-    msg_.data = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_internal_debug_msgs::msg::Float64Stamped & msg_;
-};
-
-class Init_Float64Stamped_stamp
-{
-public:
-  Init_Float64Stamped_stamp() : msg_(storage_) {}
-  Init_Float64Stamped_data stamp(builtin_interfaces::msg::Time arg)
-  {
-    msg_.stamp = std::move(arg);
-    return Init_Float64Stamped_data(msg_);
-  }
-
-private:
-  ::autoware_internal_debug_msgs::msg::Float64Stamped storage_;
-  ::autoware_internal_debug_msgs::msg::Float64Stamped & msg_;
-};
-
-}  // namespace autoware_internal_debug_msgs::msg::builder
-
-namespace autoware_internal_debug_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_internal_debug_msgs::msg::Float64Stamped>()
-{
-  return autoware_internal_debug_msgs::msg::builder::Init_Float64Stamped_stamp();
-}
-}  // namespace autoware_internal_debug_msgs
 
 #endif  // SHIM__AUTOWARE_INTERNAL_DEBUG_MSGS__MSG__DETAIL__FLOAT64_STAMPED__STRUCT_HPP_

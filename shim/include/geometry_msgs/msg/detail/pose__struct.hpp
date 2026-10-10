@@ -2,15 +2,11 @@
 #ifndef SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE__STRUCT_HPP_
 #define SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -32,49 +28,5 @@ struct Pose
   bool operator!=(const Pose & other) const { return !(*this == other); }
 };
 }  // namespace geometry_msgs::msg
-
-namespace geometry_msgs::msg::builder
-{
-class Init_Pose_orientation
-{
-public:
-  explicit Init_Pose_orientation(::geometry_msgs::msg::Pose & msg) : msg_(msg) {}
-  ::geometry_msgs::msg::Pose orientation(geometry_msgs::msg::Quaternion arg)
-  {
-    msg_.orientation = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::Pose & msg_;
-};
-
-class Init_Pose_position
-{
-public:
-  Init_Pose_position() : msg_(storage_) {}
-  Init_Pose_orientation position(geometry_msgs::msg::Point arg)
-  {
-    msg_.position = std::move(arg);
-    return Init_Pose_orientation(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::Pose storage_;
-  ::geometry_msgs::msg::Pose & msg_;
-};
-
-}  // namespace geometry_msgs::msg::builder
-
-namespace geometry_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::geometry_msgs::msg::Pose>()
-{
-  return geometry_msgs::msg::builder::Init_Pose_position();
-}
-}  // namespace geometry_msgs
 
 #endif  // SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE__STRUCT_HPP_

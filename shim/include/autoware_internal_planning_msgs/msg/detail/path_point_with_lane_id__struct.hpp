@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_INTERNAL_PLANNING_MSGS__MSG__DETAIL__PATH_POINT_WITH_LANE_ID__STRUCT_HPP_
 #define SHIM__AUTOWARE_INTERNAL_PLANNING_MSGS__MSG__DETAIL__PATH_POINT_WITH_LANE_ID__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -31,49 +27,5 @@ struct PathPointWithLaneId
   bool operator!=(const PathPointWithLaneId & other) const { return !(*this == other); }
 };
 }  // namespace autoware_internal_planning_msgs::msg
-
-namespace autoware_internal_planning_msgs::msg::builder
-{
-class Init_PathPointWithLaneId_lane_ids
-{
-public:
-  explicit Init_PathPointWithLaneId_lane_ids(::autoware_internal_planning_msgs::msg::PathPointWithLaneId & msg) : msg_(msg) {}
-  ::autoware_internal_planning_msgs::msg::PathPointWithLaneId lane_ids(std::vector<int64_t> arg)
-  {
-    msg_.lane_ids = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_internal_planning_msgs::msg::PathPointWithLaneId & msg_;
-};
-
-class Init_PathPointWithLaneId_point
-{
-public:
-  Init_PathPointWithLaneId_point() : msg_(storage_) {}
-  Init_PathPointWithLaneId_lane_ids point(autoware_planning_msgs::msg::PathPoint arg)
-  {
-    msg_.point = std::move(arg);
-    return Init_PathPointWithLaneId_lane_ids(msg_);
-  }
-
-private:
-  ::autoware_internal_planning_msgs::msg::PathPointWithLaneId storage_;
-  ::autoware_internal_planning_msgs::msg::PathPointWithLaneId & msg_;
-};
-
-}  // namespace autoware_internal_planning_msgs::msg::builder
-
-namespace autoware_internal_planning_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_internal_planning_msgs::msg::PathPointWithLaneId>()
-{
-  return autoware_internal_planning_msgs::msg::builder::Init_PathPointWithLaneId_point();
-}
-}  // namespace autoware_internal_planning_msgs
 
 #endif  // SHIM__AUTOWARE_INTERNAL_PLANNING_MSGS__MSG__DETAIL__PATH_POINT_WITH_LANE_ID__STRUCT_HPP_

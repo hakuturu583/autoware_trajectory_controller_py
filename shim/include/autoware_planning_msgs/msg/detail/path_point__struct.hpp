@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__PATH_POINT__STRUCT_HPP_
 #define SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__PATH_POINT__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -34,91 +30,5 @@ struct PathPoint
   bool operator!=(const PathPoint & other) const { return !(*this == other); }
 };
 }  // namespace autoware_planning_msgs::msg
-
-namespace autoware_planning_msgs::msg::builder
-{
-class Init_PathPoint_is_final
-{
-public:
-  explicit Init_PathPoint_is_final(::autoware_planning_msgs::msg::PathPoint & msg) : msg_(msg) {}
-  ::autoware_planning_msgs::msg::PathPoint is_final(bool arg)
-  {
-    msg_.is_final = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::PathPoint & msg_;
-};
-
-class Init_PathPoint_heading_rate_rps
-{
-public:
-  explicit Init_PathPoint_heading_rate_rps(::autoware_planning_msgs::msg::PathPoint & msg) : msg_(msg) {}
-  Init_PathPoint_is_final heading_rate_rps(float arg)
-  {
-    msg_.heading_rate_rps = std::move(arg);
-    return Init_PathPoint_is_final(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::PathPoint & msg_;
-};
-
-class Init_PathPoint_lateral_velocity_mps
-{
-public:
-  explicit Init_PathPoint_lateral_velocity_mps(::autoware_planning_msgs::msg::PathPoint & msg) : msg_(msg) {}
-  Init_PathPoint_heading_rate_rps lateral_velocity_mps(float arg)
-  {
-    msg_.lateral_velocity_mps = std::move(arg);
-    return Init_PathPoint_heading_rate_rps(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::PathPoint & msg_;
-};
-
-class Init_PathPoint_longitudinal_velocity_mps
-{
-public:
-  explicit Init_PathPoint_longitudinal_velocity_mps(::autoware_planning_msgs::msg::PathPoint & msg) : msg_(msg) {}
-  Init_PathPoint_lateral_velocity_mps longitudinal_velocity_mps(float arg)
-  {
-    msg_.longitudinal_velocity_mps = std::move(arg);
-    return Init_PathPoint_lateral_velocity_mps(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::PathPoint & msg_;
-};
-
-class Init_PathPoint_pose
-{
-public:
-  Init_PathPoint_pose() : msg_(storage_) {}
-  Init_PathPoint_longitudinal_velocity_mps pose(geometry_msgs::msg::Pose arg)
-  {
-    msg_.pose = std::move(arg);
-    return Init_PathPoint_longitudinal_velocity_mps(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::PathPoint storage_;
-  ::autoware_planning_msgs::msg::PathPoint & msg_;
-};
-
-}  // namespace autoware_planning_msgs::msg::builder
-
-namespace autoware_planning_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_planning_msgs::msg::PathPoint>()
-{
-  return autoware_planning_msgs::msg::builder::Init_PathPoint_pose();
-}
-}  // namespace autoware_planning_msgs
 
 #endif  // SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__PATH_POINT__STRUCT_HPP_

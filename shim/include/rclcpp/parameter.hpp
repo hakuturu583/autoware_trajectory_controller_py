@@ -18,7 +18,6 @@ enum ParameterType {
   PARAMETER_INTEGER,
   PARAMETER_DOUBLE,
   PARAMETER_STRING,
-  PARAMETER_BYTE_ARRAY,
   PARAMETER_BOOL_ARRAY,
   PARAMETER_INTEGER_ARRAY,
   PARAMETER_DOUBLE_ARRAY,
@@ -100,10 +99,24 @@ public:
   ParameterValue(std::vector<double> v) : value_(std::move(v)) {}        // NOLINT
   ParameterValue(std::vector<std::string> v) : value_(std::move(v)) {}   // NOLINT
 
-  ParameterType get_type() const { return static_cast<ParameterType>(value_.index() < 5 ? value_.index() : value_.index() + 1); }
+  ParameterType get_type() const { return static_cast<ParameterType>(value_.index()); }
 
-  /// Typed access. Integers are implicitly promoted to doubles (and integer arrays to
-  /// double arrays) because YAML files frequently write `1` for `1.0`.
+  /// The value converted to `type` where rclcpp would accept it (integer -> double,
+  /// integer array -> double array, as YAML often writes `1` for `1.0`); otherwise unchanged.
+  ParameterValue promoted_to(ParameterType type) const
+  {
+    if (type == PARAMETER_DOUBLE) {
+      if (auto p = std::get_if<int64_t>(&value_)) return ParameterValue(static_cast<double>(*p));
+    }
+    if (type == PARAMETER_DOUBLE_ARRAY) {
+      if (auto p = std::get_if<std::vector<int64_t>>(&value_)) {
+        return ParameterValue(std::vector<double>(p->begin(), p->end()));
+      }
+    }
+    return *this;
+  }
+
+  /// Typed access; throws ParameterTypeException on a type mismatch (like rclcpp).
   template <typename T>
   T get() const
   {
@@ -111,7 +124,6 @@ public:
     if constexpr (std::is_same_v<U, bool>) {
       return expect<bool>(PARAMETER_BOOL);
     } else if constexpr (std::is_same_v<U, double> || std::is_same_v<U, float>) {
-      if (auto p = std::get_if<int64_t>(&value_)) return static_cast<U>(*p);
       return static_cast<U>(expect<double>(PARAMETER_DOUBLE));
     } else if constexpr (std::is_integral_v<U>) {
       return static_cast<U>(expect<int64_t>(PARAMETER_INTEGER));
@@ -120,9 +132,6 @@ public:
     } else if constexpr (std::is_same_v<U, std::vector<bool>>) {
       return expect<std::vector<bool>>(PARAMETER_BOOL_ARRAY);
     } else if constexpr (std::is_same_v<U, std::vector<double>>) {
-      if (auto p = std::get_if<std::vector<int64_t>>(&value_)) {
-        return std::vector<double>(p->begin(), p->end());
-      }
       return expect<std::vector<double>>(PARAMETER_DOUBLE_ARRAY);
     } else if constexpr (std::is_same_v<U, std::vector<float>>) {
       const auto v = get<std::vector<double>>();
@@ -152,6 +161,42 @@ private:
   Storage value_{};
 };
 
+/// Build an array parameter from scalar values: all bools -> bool array, all integers ->
+/// integer array, any mix of numbers -> double array, all strings -> string array.
+/// An empty list becomes an empty double array.
+inline ParameterValue make_array_value(const std::vector<ParameterValue> & values)
+{
+  bool all_bool = true, all_int = true, all_num = true, all_str = true;
+  for (const auto & v : values) {
+    const auto t = v.get_type();
+    all_bool &= t == PARAMETER_BOOL;
+    all_int &= t == PARAMETER_INTEGER;
+    all_num &= t == PARAMETER_INTEGER || t == PARAMETER_DOUBLE;
+    all_str &= t == PARAMETER_STRING;
+  }
+  if (values.empty() || (all_num && !all_int)) {
+    std::vector<double> out;
+    for (const auto & v : values) out.push_back(v.promoted_to(PARAMETER_DOUBLE).get<double>());
+    return ParameterValue(out);
+  }
+  if (all_bool) {
+    std::vector<bool> out;
+    for (const auto & v : values) out.push_back(v.get<bool>());
+    return ParameterValue(out);
+  }
+  if (all_int) {
+    std::vector<int64_t> out;
+    for (const auto & v : values) out.push_back(v.get<int64_t>());
+    return ParameterValue(out);
+  }
+  if (all_str) {
+    std::vector<std::string> out;
+    for (const auto & v : values) out.push_back(v.get<std::string>());
+    return ParameterValue(out);
+  }
+  throw std::invalid_argument("array parameters must not mix types");
+}
+
 class Parameter
 {
 public:
@@ -179,17 +224,8 @@ public:
     }
   }
 
-  bool as_bool() const { return get_value<bool>(); }
-  int64_t as_int() const { return get_value<int64_t>(); }
   double as_double() const { return get_value<double>(); }
   std::string as_string() const { return get_value<std::string>(); }
-  std::vector<bool> as_bool_array() const { return get_value<std::vector<bool>>(); }
-  std::vector<int64_t> as_integer_array() const { return get_value<std::vector<int64_t>>(); }
-  std::vector<double> as_double_array() const { return get_value<std::vector<double>>(); }
-  std::vector<std::string> as_string_array() const
-  {
-    return get_value<std::vector<std::string>>();
-  }
 
 private:
   std::string name_;

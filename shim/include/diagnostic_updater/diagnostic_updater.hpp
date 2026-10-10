@@ -22,20 +22,6 @@ public:
     level = lvl;
     message = msg;
   }
-  void summary(const diagnostic_msgs::msg::DiagnosticStatus & src)
-  {
-    summary(src.level, src.message);
-  }
-  void mergeSummary(unsigned char lvl, const std::string & msg)
-  {
-    if ((lvl > 0) == (level > 0)) {
-      if (!message.empty()) message += "; ";
-      message += msg;
-    } else if (lvl > level) {
-      message = msg;
-    }
-    if (lvl > level) level = lvl;
-  }
   template <class T>
   void add(const std::string & key, const T & val)
   {
@@ -45,13 +31,6 @@ public:
     kv.key = key;
     kv.value = ss.str();
     values.push_back(kv);
-  }
-  void add(const std::string & key, bool val) { add<std::string>(key, val ? "True" : "False"); }
-  void clear()
-  {
-    values.clear();
-    level = 0;
-    message.clear();
   }
 };
 
@@ -73,18 +52,7 @@ public:
   {
     add(name, [c, f](DiagnosticStatusWrapper & s) { (c->*f)(s); });
   }
-  bool removeByName(const std::string & name)
-  {
-    for (auto it = tasks_.begin(); it != tasks_.end(); ++it) {
-      if (it->first == name) {
-        tasks_.erase(it);
-        return true;
-      }
-    }
-    return false;
-  }
   void setHardwareID(const std::string & hwid) { hwid_ = hwid; }
-  void setPeriod(double) {}
 
   void force_update()
   {

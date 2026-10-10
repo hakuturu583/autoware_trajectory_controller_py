@@ -42,7 +42,6 @@ const char * level_name(LogLevel level)
 }  // namespace
 
 void set_global_level(LogLevel level) { g_level = static_cast<int>(level); }
-LogLevel get_global_level() { return static_cast<LogLevel>(g_level.load()); }
 void set_sink(LogSink sink)
 {
   std::lock_guard<std::mutex> lock(g_sink_mutex);
@@ -174,34 +173,11 @@ ParameterValue parse_value(const std::string & raw, const std::string & name)
     const auto items = split_flow_list(s.substr(1, s.size() - 2));
     std::vector<ParameterValue> values;
     for (const auto & item : items) values.push_back(scalar_value(item));
-    if (values.empty()) return ParameterValue(std::vector<std::string>{});
-    const auto t = values.front().get_type();
-    bool all_same = true, all_num = true;
-    for (const auto & v : values) {
-      all_same &= v.get_type() == t;
-      all_num &= v.get_type() == PARAMETER_INTEGER || v.get_type() == PARAMETER_DOUBLE;
+    try {
+      return make_array_value(values);
+    } catch (const std::invalid_argument &) {
+      throw std::runtime_error("mixed types in list parameter '" + name + "'");
     }
-    if (all_same && t == PARAMETER_BOOL) {
-      std::vector<bool> out;
-      for (const auto & v : values) out.push_back(v.get<bool>());
-      return ParameterValue(out);
-    }
-    if (all_same && t == PARAMETER_INTEGER) {
-      std::vector<int64_t> out;
-      for (const auto & v : values) out.push_back(v.get<int64_t>());
-      return ParameterValue(out);
-    }
-    if (all_num) {
-      std::vector<double> out;
-      for (const auto & v : values) out.push_back(v.get<double>());
-      return ParameterValue(out);
-    }
-    if (all_same && t == PARAMETER_STRING) {
-      std::vector<std::string> out;
-      for (const auto & v : values) out.push_back(v.get<std::string>());
-      return ParameterValue(out);
-    }
-    throw std::runtime_error("mixed types in list parameter '" + name + "'");
   }
   return scalar_value(s);
 }
@@ -267,9 +243,8 @@ Node::Node(const std::string & name, const NodeOptions & options)
   }
 }
 
-const ParameterValue & Node::declare_parameter(
-  const std::string & name, const ParameterValue & default_value,
-  const rcl_interfaces::msg::ParameterDescriptor &, bool ignore_override)
+ParameterValue & Node::declare_impl(
+  const std::string & name, const ParameterValue & default_value, bool ignore_override)
 {
   if (parameters_.count(name)) {
     throw exceptions::ParameterAlreadyDeclaredException(name);
@@ -283,9 +258,20 @@ const ParameterValue & Node::declare_parameter(
   return parameters_[name] = value;
 }
 
-const ParameterValue & Node::declare_without_default(const std::string & name)
+const ParameterValue & Node::declare_parameter(
+  const std::string & name, const ParameterValue & default_value,
+  const rcl_interfaces::msg::ParameterDescriptor &, bool ignore_override)
 {
-  return declare_parameter(name, ParameterValue{});
+  return declare_impl(name, default_value, ignore_override);
+}
+
+const ParameterValue & Node::declare_typed(
+  const std::string & name, const ParameterValue & default_value, ParameterType type,
+  bool ignore_override)
+{
+  auto & value = declare_impl(name, default_value, ignore_override);
+  value = value.promoted_to(type);
+  return value;
 }
 
 bool Node::has_parameter(const std::string & name) const { return parameters_.count(name) > 0; }
@@ -297,13 +283,6 @@ Parameter Node::get_parameter(const std::string & name) const
     throw exceptions::ParameterNotDeclaredException(name);
   }
   return Parameter(name, it->second);
-}
-
-std::vector<Parameter> Node::get_parameters(const std::vector<std::string> & names) const
-{
-  std::vector<Parameter> out;
-  for (const auto & n : names) out.push_back(get_parameter(n));
-  return out;
 }
 
 std::vector<Parameter> Node::list_parameters() const
@@ -318,39 +297,36 @@ rcl_interfaces::msg::SetParametersResult Node::set_parameters_atomically(
 {
   rcl_interfaces::msg::SetParametersResult result;
   result.successful = true;
+  // Values are converted to the declared type before the callbacks see them.
+  std::vector<Parameter> converted;
   for (const auto & p : parameters) {
-    if (!has_parameter(p.get_name())) {
+    const auto it = parameters_.find(p.get_name());
+    if (it == parameters_.end()) {
       result.successful = false;
       result.reason = "parameter '" + p.get_name() + "' has not been declared";
       return result;
     }
+    const auto value = p.get_parameter_value().promoted_to(it->second.get_type());
+    if (value.get_type() != it->second.get_type()) {
+      result.successful = false;
+      result.reason = "parameter '" + p.get_name() + "' has a different type than declared";
+      return result;
+    }
+    converted.emplace_back(p.get_name(), value);
   }
   for (auto it = param_callbacks_.begin(); it != param_callbacks_.end();) {
     if (auto handle = it->lock()) {
-      result = handle->callback(parameters);
+      result = handle->callback(converted);
       if (!result.successful) return result;
       ++it;
     } else {
       it = param_callbacks_.erase(it);
     }
   }
-  for (const auto & p : parameters) {
+  for (const auto & p : converted) {
     parameters_[p.get_name()] = p.get_parameter_value();
   }
   return result;
-}
-
-rcl_interfaces::msg::SetParametersResult Node::set_parameter(const Parameter & parameter)
-{
-  return set_parameters_atomically({parameter});
-}
-
-std::vector<rcl_interfaces::msg::SetParametersResult> Node::set_parameters(
-  const std::vector<Parameter> & parameters)
-{
-  std::vector<rcl_interfaces::msg::SetParametersResult> results;
-  for (const auto & p : parameters) results.push_back(set_parameter(p));
-  return results;
 }
 
 Node::OnSetParametersCallbackHandle::SharedPtr Node::add_on_set_parameters_callback(
@@ -360,14 +336,6 @@ Node::OnSetParametersCallbackHandle::SharedPtr Node::add_on_set_parameters_callb
   handle->callback = std::move(callback);
   param_callbacks_.emplace_front(handle);
   return handle;
-}
-
-void Node::remove_on_set_parameters_callback(const OnSetParametersCallbackHandle * handle)
-{
-  param_callbacks_.remove_if([handle](const auto & w) {
-    auto s = w.lock();
-    return !s || s.get() == handle;
-  });
 }
 
 std::vector<std::string> Node::get_topic_names() const

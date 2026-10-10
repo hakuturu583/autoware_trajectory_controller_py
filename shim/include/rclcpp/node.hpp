@@ -50,8 +50,6 @@ public:
     return *this;
   }
   const std::vector<std::string> & arguments() const { return arguments_; }
-  NodeOptions & automatically_declare_parameters_from_overrides(bool) { return *this; }
-  NodeOptions & allow_undeclared_parameters(bool) { return *this; }
 
 private:
   std::vector<Parameter> parameter_overrides_;
@@ -98,8 +96,6 @@ public:
   Node & operator=(const Node &) = delete;
 
   const char * get_name() const { return name_.c_str(); }
-  const char * get_namespace() const { return "/"; }
-  std::string get_fully_qualified_name() const { return "/" + name_; }
 
   // ---- parameters --------------------------------------------------------
   const ParameterValue & declare_parameter(
@@ -113,7 +109,10 @@ public:
     const rcl_interfaces::msg::ParameterDescriptor & descriptor = {},
     bool ignore_override = false)
   {
-    return declare_parameter(name, ParameterValue(default_value), descriptor, ignore_override)
+    (void)descriptor;
+    return declare_typed(
+             name, ParameterValue(default_value), ParameterValue(ParameterT{}).get_type(),
+             ignore_override)
       .template get<ParameterT>();
   }
 
@@ -124,40 +123,21 @@ public:
     bool ignore_override = false)
   {
     (void)descriptor;
-    (void)ignore_override;
-    return declare_without_default(name).template get<ParameterT>();
+    return declare_typed(
+             name, ParameterValue{}, ParameterValue(ParameterT{}).get_type(), ignore_override)
+      .template get<ParameterT>();
   }
 
   bool has_parameter(const std::string & name) const;
   Parameter get_parameter(const std::string & name) const;
-  template <typename ParameterT>
-  bool get_parameter(const std::string & name, ParameterT & value) const
-  {
-    if (!has_parameter(name)) return false;
-    value = get_parameter(name).template get_value<ParameterT>();
-    return true;
-  }
-  template <typename ParameterT>
-  bool get_parameter_or(
-    const std::string & name, ParameterT & value, const ParameterT & alternative) const
-  {
-    if (get_parameter(name, value)) return true;
-    value = alternative;
-    return false;
-  }
-  std::vector<Parameter> get_parameters(const std::vector<std::string> & names) const;
   /// All declared parameters, sorted by name.
   std::vector<Parameter> list_parameters() const;
 
-  std::vector<rcl_interfaces::msg::SetParametersResult> set_parameters(
-    const std::vector<Parameter> & parameters);
-  rcl_interfaces::msg::SetParametersResult set_parameter(const Parameter & parameter);
   rcl_interfaces::msg::SetParametersResult set_parameters_atomically(
     const std::vector<Parameter> & parameters);
 
   OnSetParametersCallbackHandle::SharedPtr add_on_set_parameters_callback(
     OnSetParametersCallbackType callback);
-  void remove_on_set_parameters_callback(const OnSetParametersCallbackHandle * handle);
 
   node_interfaces::NodeParametersInterface::SharedPtr get_node_parameters_interface()
   {
@@ -178,7 +158,7 @@ public:
     (void)qos;
     auto slot = std::make_shared<typename Publisher<MessageT>::Slot>();
     topics_[topic] = slot;
-    return std::make_shared<Publisher<MessageT>>(topic, slot);
+    return std::make_shared<Publisher<MessageT>>(slot);
   }
 
   /// Latest message published on `topic` (std::nullopt if none / type mismatch).
@@ -196,7 +176,12 @@ public:
   std::vector<std::string> get_topic_names() const;
 
 private:
-  const ParameterValue & declare_without_default(const std::string & name);
+  ParameterValue & declare_impl(
+    const std::string & name, const ParameterValue & default_value, bool ignore_override);
+  /// Declare and store the value converted to the declared type (see promoted_to()).
+  const ParameterValue & declare_typed(
+    const std::string & name, const ParameterValue & default_value, ParameterType type,
+    bool ignore_override);
 
   std::string name_;
   std::map<std::string, ParameterValue> overrides_;

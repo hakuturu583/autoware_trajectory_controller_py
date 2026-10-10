@@ -25,18 +25,12 @@ def _input_data(
     operation_mode: Union[m.OperationModeState, bool, None],
     stamp: TimeLike,
 ) -> m.InputData:
-    if steering is None:
-        steering = 0.0
     if not isinstance(steering, m.SteeringReport):
-        steering = make_steering_report(float(steering), stamp)
-    if accel is None:
-        accel = 0.0
+        steering = make_steering_report(float(steering or 0.0), stamp)
     if not isinstance(accel, m.AccelWithCovarianceStamped):
-        accel = make_accel(float(accel), stamp)
-    if operation_mode is None:
-        operation_mode = True
+        accel = make_accel(float(accel or 0.0), stamp)
     if not isinstance(operation_mode, m.OperationModeState):
-        operation_mode = make_operation_mode(bool(operation_mode), stamp)
+        operation_mode = make_operation_mode(operation_mode is None or bool(operation_mode), stamp)
     return m.InputData(
         trajectory=trajectory,
         odometry=odometry,
@@ -44,6 +38,11 @@ def _input_data(
         accel=accel,
         operation_mode=operation_mode,
     )
+
+
+def _run_if_ready(controller: Any, data: m.InputData) -> Any:
+    """Run one cycle of a single controller; None when it is not ready."""
+    return controller.run(data) if controller.is_ready(data) else None
 
 
 def _apply_time(host: Any, time: TimeLike) -> None:
@@ -108,9 +107,7 @@ class LateralController(m.LateralController):
         """Run one cycle; returns None when the controller is not ready."""
         _apply_time(self, time)
         data = _input_data(trajectory, odometry, steering, None, operation_mode, time)
-        if not self.is_ready(data):
-            return None
-        return self.run(data)
+        return _run_if_ready(self, data)
 
 
 class LongitudinalController(m.LongitudinalController):
@@ -131,6 +128,4 @@ class LongitudinalController(m.LongitudinalController):
         """Run one cycle; returns None when the controller is not ready."""
         _apply_time(self, time)
         data = _input_data(trajectory, odometry, steering, accel, operation_mode, time)
-        if not self.is_ready(data):
-            return None
-        return self.run(data)
+        return _run_if_ready(self, data)

@@ -23,12 +23,10 @@
 #include "geometry_msgs/msg/twist_with_covariance.hpp"
 #include "geometry_msgs/msg/twist_with_covariance_stamped.hpp"
 #include "geometry_msgs/msg/accel.hpp"
-#include "geometry_msgs/msg/accel_stamped.hpp"
 #include "geometry_msgs/msg/accel_with_covariance.hpp"
 #include "geometry_msgs/msg/accel_with_covariance_stamped.hpp"
 #include "geometry_msgs/msg/transform.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
-#include "geometry_msgs/msg/polygon.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "diagnostic_msgs/msg/key_value.hpp"
 #include "diagnostic_msgs/msg/diagnostic_status.hpp"
@@ -451,28 +449,6 @@ inline void bind_messages(pybind11::module_ & m)
     c.attr("__hash__") = py::none();
   }
   {
-    py::class_<geometry_msgs::msg::AccelStamped> c(m, "AccelStamped", "ROS-free counterpart of geometry_msgs/msg/AccelStamped.");
-    c.def(py::init<>());
-    c.def(py::init([](py::object header, py::object accel) {
-      geometry_msgs::msg::AccelStamped msg;
-      if (!header.is_none()) msg.header = header.cast<std_msgs::msg::Header>();
-      if (!accel.is_none()) msg.accel = accel.cast<geometry_msgs::msg::Accel>();
-      return msg;
-    }), py::kw_only(), py::arg("header") = py::none(), py::arg("accel") = py::none());
-    c.def_readwrite("header", &geometry_msgs::msg::AccelStamped::header);
-    c.def_readwrite("accel", &geometry_msgs::msg::AccelStamped::accel);
-    c.def("__eq__", [](const geometry_msgs::msg::AccelStamped & a, const geometry_msgs::msg::AccelStamped & b) { return a == b; }, py::is_operator());
-    c.def("__copy__", [](geometry_msgs::msg::AccelStamped const & self) { return geometry_msgs::msg::AccelStamped(self); });
-    c.def("__deepcopy__", [](geometry_msgs::msg::AccelStamped const & self, py::dict) { return geometry_msgs::msg::AccelStamped(self); }, py::arg("memo"));
-    c.def("__repr__", [](geometry_msgs::msg::AccelStamped const & self) {
-      std::string s = "AccelStamped(";
-      s += "header=" + py::repr(py::cast(self.header)).cast<std::string>();
-      s += ", accel=" + py::repr(py::cast(self.accel)).cast<std::string>();
-      return s + ")";
-    });
-    c.attr("__hash__") = py::none();
-  }
-  {
     py::class_<geometry_msgs::msg::AccelWithCovariance> c(m, "AccelWithCovariance", "ROS-free counterpart of geometry_msgs/msg/AccelWithCovariance.");
     c.def(py::init<>());
     c.def(py::init([](py::object accel, py::object covariance) {
@@ -559,25 +535,6 @@ inline void bind_messages(pybind11::module_ & m)
       s += "header=" + py::repr(py::cast(self.header)).cast<std::string>();
       s += ", child_frame_id=" + py::repr(py::cast(self.child_frame_id)).cast<std::string>();
       s += ", transform=" + py::repr(py::cast(self.transform)).cast<std::string>();
-      return s + ")";
-    });
-    c.attr("__hash__") = py::none();
-  }
-  {
-    py::class_<geometry_msgs::msg::Polygon> c(m, "Polygon", "ROS-free counterpart of geometry_msgs/msg/Polygon.");
-    c.def(py::init<>());
-    c.def(py::init([](py::object points) {
-      geometry_msgs::msg::Polygon msg;
-      if (!points.is_none()) msg.points = points.cast<std::vector<geometry_msgs::msg::Point32>>();
-      return msg;
-    }), py::kw_only(), py::arg("points") = py::none());
-    c.def_readwrite("points", &geometry_msgs::msg::Polygon::points);
-    c.def("__eq__", [](const geometry_msgs::msg::Polygon & a, const geometry_msgs::msg::Polygon & b) { return a == b; }, py::is_operator());
-    c.def("__copy__", [](geometry_msgs::msg::Polygon const & self) { return geometry_msgs::msg::Polygon(self); });
-    c.def("__deepcopy__", [](geometry_msgs::msg::Polygon const & self, py::dict) { return geometry_msgs::msg::Polygon(self); }, py::arg("memo"));
-    c.def("__repr__", [](geometry_msgs::msg::Polygon const & self) {
-      std::string s = "Polygon(";
-      s += "points=" + py::repr(py::cast(self.points)).cast<std::string>();
       return s + ")";
     });
     c.attr("__hash__") = py::none();

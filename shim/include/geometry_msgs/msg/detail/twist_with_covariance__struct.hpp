@@ -2,15 +2,11 @@
 #ifndef SHIM__GEOMETRY_MSGS__MSG__DETAIL__TWIST_WITH_COVARIANCE__STRUCT_HPP_
 #define SHIM__GEOMETRY_MSGS__MSG__DETAIL__TWIST_WITH_COVARIANCE__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -31,49 +27,5 @@ struct TwistWithCovariance
   bool operator!=(const TwistWithCovariance & other) const { return !(*this == other); }
 };
 }  // namespace geometry_msgs::msg
-
-namespace geometry_msgs::msg::builder
-{
-class Init_TwistWithCovariance_covariance
-{
-public:
-  explicit Init_TwistWithCovariance_covariance(::geometry_msgs::msg::TwistWithCovariance & msg) : msg_(msg) {}
-  ::geometry_msgs::msg::TwistWithCovariance covariance(std::array<double, 36> arg)
-  {
-    msg_.covariance = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::TwistWithCovariance & msg_;
-};
-
-class Init_TwistWithCovariance_twist
-{
-public:
-  Init_TwistWithCovariance_twist() : msg_(storage_) {}
-  Init_TwistWithCovariance_covariance twist(geometry_msgs::msg::Twist arg)
-  {
-    msg_.twist = std::move(arg);
-    return Init_TwistWithCovariance_covariance(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::TwistWithCovariance storage_;
-  ::geometry_msgs::msg::TwistWithCovariance & msg_;
-};
-
-}  // namespace geometry_msgs::msg::builder
-
-namespace geometry_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::geometry_msgs::msg::TwistWithCovariance>()
-{
-  return geometry_msgs::msg::builder::Init_TwistWithCovariance_twist();
-}
-}  // namespace geometry_msgs
 
 #endif  // SHIM__GEOMETRY_MSGS__MSG__DETAIL__TWIST_WITH_COVARIANCE__STRUCT_HPP_

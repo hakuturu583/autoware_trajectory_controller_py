@@ -20,10 +20,14 @@ set(UTILS ${TP}/utils)
 # -----------------------------------------------------------------------------
 # Autoware sources (vendored verbatim, see third_party/UPSTREAM.md)
 # -----------------------------------------------------------------------------
-set(AUTOWARE_SOURCES
-  # ROS 2 replacements
+# First-party sources: ROS 2 replacements and the ROS-free trajectory follower.
+set(FIRST_PARTY_SOURCES
   shim/src/rclcpp_shim.cpp
   shim/src/autoware_utils_shim.cpp
+  src/trajectory_follower.cpp
+)
+
+set(VENDORED_SOURCES
   # autoware_utils
   ${UTILS}/autoware_utils_geometry/src/geometry/geometry.cpp
   ${UTILS}/autoware_utils_geometry/src/geometry/pose_deviation.cpp
@@ -68,23 +72,25 @@ set(AUTOWARE_SOURCES
   ${UNIVERSE}/autoware_pure_pursuit/src/autoware_pure_pursuit_core/planning_utils.cpp
   ${UNIVERSE}/autoware_pure_pursuit/src/autoware_pure_pursuit/autoware_pure_pursuit_lateral_controller.cpp
   ${UNIVERSE}/autoware_pure_pursuit/src/autoware_pure_pursuit/autoware_pure_pursuit_viz.cpp
-  # ROS-free trajectory follower (replacement of autoware_trajectory_follower_node)
-  src/trajectory_follower.cpp
-)
-
-# OSQP is always required: mpc_lateral_controller.cpp includes the OSQP solver header.
-list(APPEND AUTOWARE_SOURCES
+  # OSQP is always required: mpc_lateral_controller.cpp includes the OSQP solver header.
   ${CORE}/autoware_osqp_interface/src/csc_matrix_conv.cpp
   ${CORE}/autoware_osqp_interface/src/osqp_interface.cpp
   ${UNIVERSE}/autoware_mpc_lateral_controller/src/qp_solver/qp_solver_osqp.cpp
 )
 
-add_library(autoware_control_core STATIC ${AUTOWARE_SOURCES})
+# Vendored code compiles unchanged; its warnings are not ours to fix.
+set_source_files_properties(${VENDORED_SOURCES} PROPERTIES COMPILE_OPTIONS -w)
+
+add_library(autoware_control_core STATIC ${FIRST_PARTY_SOURCES} ${VENDORED_SOURCES})
+# The shim must come first (non-system dirs are searched before SYSTEM ones) so that it
+# overrides ROS 2 / boost headers.
 target_include_directories(autoware_control_core
   PUBLIC
-    # The shim must come first so that it overrides ROS 2 / boost headers.
     ${CMAKE_CURRENT_SOURCE_DIR}/shim/include
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_include_directories(autoware_control_core SYSTEM
+  PUBLIC
     ${UTILS}/autoware_utils/include
     ${UTILS}/autoware_utils_geometry/include
     ${UTILS}/autoware_utils_math/include
@@ -100,13 +106,13 @@ target_include_directories(autoware_control_core
     ${UNIVERSE}/autoware_pid_longitudinal_controller/include
     ${UNIVERSE}/autoware_pure_pursuit/include
 )
+# Std headers the vendored headers expect to get transitively from ROS 2 (PUBLIC: every
+# TU including them needs it, see shim/include/shim_prelude.hpp).
+target_compile_options(autoware_control_core
+  PUBLIC "SHELL:-include ${CMAKE_CURRENT_SOURCE_DIR}/shim/include/shim_prelude.hpp")
 target_link_libraries(autoware_control_core PUBLIC Eigen3::Eigen)
 target_include_directories(autoware_control_core SYSTEM PUBLIC ${OSQP_PREFIXED_INCLUDE_DIR})
 target_link_libraries(autoware_control_core PUBLIC osqpstatic)
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-  # Upstream code is warning-clean with its own flags; keep the vendored build quiet.
-  target_compile_options(autoware_control_core PRIVATE -w)
-endif()
 
 # -----------------------------------------------------------------------------
 # Python module
@@ -115,7 +121,8 @@ if(AUTOWARE_TC_BUILD_PYTHON)
   find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
   find_package(pybind11 CONFIG REQUIRED)
 
-  pybind11_add_module(_core MODULE src/bindings/module.cpp)
+  # Thin LTO: full LTO only adds link time here (the controllers live in a static library).
+  pybind11_add_module(_core MODULE THIN_LTO src/bindings/module.cpp)
   target_link_libraries(_core PRIVATE autoware_control_core)
 
   set(PKG autoware_trajectory_controller)

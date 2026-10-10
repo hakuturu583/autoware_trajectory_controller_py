@@ -21,20 +21,40 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEST = ROOT / "third_party"
 
-# (repository key, package path inside the repository, sub directories to copy)
+# (repository key, package path inside the repository, directories / files to copy).
+# Only what CMakeLists.txt compiles (or the upstream tests read) is vendored.
 PACKAGES: list[tuple[str, str, tuple[str, ...]]] = [
     ("universe", "control/autoware_trajectory_follower_base", ("include", "src")),
     ("universe", "control/autoware_mpc_lateral_controller", ("include", "src", "param", "test")),
-    ("universe", "control/autoware_pid_longitudinal_controller", ("include", "src", "config", "test")),
-    ("universe", "control/autoware_pure_pursuit", ("include", "src", "config")),
-    ("universe", "control/autoware_trajectory_follower_node", ("param",)),
+    ("universe", "control/autoware_pid_longitudinal_controller", ("include", "src", "test")),
+    ("universe", "control/autoware_pure_pursuit", ("include", "src")),
+    # Parameters, plus the node sources that src/trajectory_follower.cpp mirrors (not
+    # compiled; vendored so that upstream changes show up in sync diffs).
+    ("universe", "control/autoware_trajectory_follower_node", ("include", "src", "param")),
     ("core", "common/autoware_interpolation", ("include", "src")),
-    ("core", "common/autoware_motion_utils", ("include", "src")),
+    (
+        "core",
+        "common/autoware_motion_utils",
+        (
+            "include",
+            "src/distance",
+            "src/marker",
+            "src/resample",
+            "src/trajectory/conversion.cpp",
+            "src/trajectory/interpolation.cpp",
+            "src/trajectory/path_with_lane_id.cpp",
+            "src/trajectory/trajectory.cpp",
+        ),
+    ),
     ("core", "common/autoware_osqp_interface", ("include", "src")),
     ("core", "common/autoware_vehicle_info_utils", ("include", "src", "config")),
     ("utils", "autoware_utils", ("include",)),
-    ("utils", "autoware_utils_geometry", ("include", "src")),
-    ("utils", "autoware_utils_math", ("include", "src")),
+    (
+        "utils",
+        "autoware_utils_geometry",
+        ("include", "src/geometry/geometry.cpp", "src/geometry/pose_deviation.cpp"),
+    ),
+    ("utils", "autoware_utils_math", ("include",)),
     ("utils", "autoware_utils_system", ("include", "src")),
     ("utils", "autoware_utils_rclcpp", ("include",)),
     ("utils", "autoware_utils_visualization", ("include", "src")),
@@ -64,14 +84,18 @@ def main() -> None:
     args = parser.parse_args()
     repos = {"universe": args.universe, "core": args.core, "utils": args.utils}
 
-    for key, pkg, subdirs in PACKAGES:
+    for key, pkg, items in PACKAGES:
         src_pkg = repos[key] / pkg
         dst_pkg = DEST / key / Path(pkg).name
         if dst_pkg.exists():
             shutil.rmtree(dst_pkg)
         dst_pkg.mkdir(parents=True)
-        for sub in subdirs:
-            shutil.copytree(src_pkg / sub, dst_pkg / sub)
+        for item in items:
+            if (src_pkg / item).is_dir():
+                shutil.copytree(src_pkg / item, dst_pkg / item)
+            else:
+                (dst_pkg / item).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src_pkg / item, dst_pkg / item)
         for extra in ("package.xml", "README.md"):
             if (src_pkg / extra).exists():
                 shutil.copy2(src_pkg / extra, dst_pkg / extra)

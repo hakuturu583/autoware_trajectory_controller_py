@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__TRAJECTORY_POINT__STRUCT_HPP_
 #define SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__TRAJECTORY_POINT__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -38,133 +34,5 @@ struct TrajectoryPoint
   bool operator!=(const TrajectoryPoint & other) const { return !(*this == other); }
 };
 }  // namespace autoware_planning_msgs::msg
-
-namespace autoware_planning_msgs::msg::builder
-{
-class Init_TrajectoryPoint_rear_wheel_angle_rad
-{
-public:
-  explicit Init_TrajectoryPoint_rear_wheel_angle_rad(::autoware_planning_msgs::msg::TrajectoryPoint & msg) : msg_(msg) {}
-  ::autoware_planning_msgs::msg::TrajectoryPoint rear_wheel_angle_rad(float arg)
-  {
-    msg_.rear_wheel_angle_rad = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::TrajectoryPoint & msg_;
-};
-
-class Init_TrajectoryPoint_front_wheel_angle_rad
-{
-public:
-  explicit Init_TrajectoryPoint_front_wheel_angle_rad(::autoware_planning_msgs::msg::TrajectoryPoint & msg) : msg_(msg) {}
-  Init_TrajectoryPoint_rear_wheel_angle_rad front_wheel_angle_rad(float arg)
-  {
-    msg_.front_wheel_angle_rad = std::move(arg);
-    return Init_TrajectoryPoint_rear_wheel_angle_rad(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::TrajectoryPoint & msg_;
-};
-
-class Init_TrajectoryPoint_heading_rate_rps
-{
-public:
-  explicit Init_TrajectoryPoint_heading_rate_rps(::autoware_planning_msgs::msg::TrajectoryPoint & msg) : msg_(msg) {}
-  Init_TrajectoryPoint_front_wheel_angle_rad heading_rate_rps(float arg)
-  {
-    msg_.heading_rate_rps = std::move(arg);
-    return Init_TrajectoryPoint_front_wheel_angle_rad(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::TrajectoryPoint & msg_;
-};
-
-class Init_TrajectoryPoint_acceleration_mps2
-{
-public:
-  explicit Init_TrajectoryPoint_acceleration_mps2(::autoware_planning_msgs::msg::TrajectoryPoint & msg) : msg_(msg) {}
-  Init_TrajectoryPoint_heading_rate_rps acceleration_mps2(float arg)
-  {
-    msg_.acceleration_mps2 = std::move(arg);
-    return Init_TrajectoryPoint_heading_rate_rps(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::TrajectoryPoint & msg_;
-};
-
-class Init_TrajectoryPoint_lateral_velocity_mps
-{
-public:
-  explicit Init_TrajectoryPoint_lateral_velocity_mps(::autoware_planning_msgs::msg::TrajectoryPoint & msg) : msg_(msg) {}
-  Init_TrajectoryPoint_acceleration_mps2 lateral_velocity_mps(float arg)
-  {
-    msg_.lateral_velocity_mps = std::move(arg);
-    return Init_TrajectoryPoint_acceleration_mps2(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::TrajectoryPoint & msg_;
-};
-
-class Init_TrajectoryPoint_longitudinal_velocity_mps
-{
-public:
-  explicit Init_TrajectoryPoint_longitudinal_velocity_mps(::autoware_planning_msgs::msg::TrajectoryPoint & msg) : msg_(msg) {}
-  Init_TrajectoryPoint_lateral_velocity_mps longitudinal_velocity_mps(float arg)
-  {
-    msg_.longitudinal_velocity_mps = std::move(arg);
-    return Init_TrajectoryPoint_lateral_velocity_mps(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::TrajectoryPoint & msg_;
-};
-
-class Init_TrajectoryPoint_pose
-{
-public:
-  explicit Init_TrajectoryPoint_pose(::autoware_planning_msgs::msg::TrajectoryPoint & msg) : msg_(msg) {}
-  Init_TrajectoryPoint_longitudinal_velocity_mps pose(geometry_msgs::msg::Pose arg)
-  {
-    msg_.pose = std::move(arg);
-    return Init_TrajectoryPoint_longitudinal_velocity_mps(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::TrajectoryPoint & msg_;
-};
-
-class Init_TrajectoryPoint_time_from_start
-{
-public:
-  Init_TrajectoryPoint_time_from_start() : msg_(storage_) {}
-  Init_TrajectoryPoint_pose time_from_start(builtin_interfaces::msg::Duration arg)
-  {
-    msg_.time_from_start = std::move(arg);
-    return Init_TrajectoryPoint_pose(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::TrajectoryPoint storage_;
-  ::autoware_planning_msgs::msg::TrajectoryPoint & msg_;
-};
-
-}  // namespace autoware_planning_msgs::msg::builder
-
-namespace autoware_planning_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_planning_msgs::msg::TrajectoryPoint>()
-{
-  return autoware_planning_msgs::msg::builder::Init_TrajectoryPoint_time_from_start();
-}
-}  // namespace autoware_planning_msgs
 
 #endif  // SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__TRAJECTORY_POINT__STRUCT_HPP_

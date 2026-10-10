@@ -2,15 +2,11 @@
 #ifndef SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE_STAMPED__STRUCT_HPP_
 #define SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE_STAMPED__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -32,49 +28,5 @@ struct PoseStamped
   bool operator!=(const PoseStamped & other) const { return !(*this == other); }
 };
 }  // namespace geometry_msgs::msg
-
-namespace geometry_msgs::msg::builder
-{
-class Init_PoseStamped_pose
-{
-public:
-  explicit Init_PoseStamped_pose(::geometry_msgs::msg::PoseStamped & msg) : msg_(msg) {}
-  ::geometry_msgs::msg::PoseStamped pose(geometry_msgs::msg::Pose arg)
-  {
-    msg_.pose = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::PoseStamped & msg_;
-};
-
-class Init_PoseStamped_header
-{
-public:
-  Init_PoseStamped_header() : msg_(storage_) {}
-  Init_PoseStamped_pose header(std_msgs::msg::Header arg)
-  {
-    msg_.header = std::move(arg);
-    return Init_PoseStamped_pose(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::PoseStamped storage_;
-  ::geometry_msgs::msg::PoseStamped & msg_;
-};
-
-}  // namespace geometry_msgs::msg::builder
-
-namespace geometry_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::geometry_msgs::msg::PoseStamped>()
-{
-  return geometry_msgs::msg::builder::Init_PoseStamped_header();
-}
-}  // namespace geometry_msgs
 
 #endif  // SHIM__GEOMETRY_MSGS__MSG__DETAIL__POSE_STAMPED__STRUCT_HPP_

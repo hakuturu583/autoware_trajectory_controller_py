@@ -2,15 +2,11 @@
 #ifndef SHIM__GEOMETRY_MSGS__MSG__DETAIL__TRANSFORM__STRUCT_HPP_
 #define SHIM__GEOMETRY_MSGS__MSG__DETAIL__TRANSFORM__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -32,49 +28,5 @@ struct Transform
   bool operator!=(const Transform & other) const { return !(*this == other); }
 };
 }  // namespace geometry_msgs::msg
-
-namespace geometry_msgs::msg::builder
-{
-class Init_Transform_rotation
-{
-public:
-  explicit Init_Transform_rotation(::geometry_msgs::msg::Transform & msg) : msg_(msg) {}
-  ::geometry_msgs::msg::Transform rotation(geometry_msgs::msg::Quaternion arg)
-  {
-    msg_.rotation = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::Transform & msg_;
-};
-
-class Init_Transform_translation
-{
-public:
-  Init_Transform_translation() : msg_(storage_) {}
-  Init_Transform_rotation translation(geometry_msgs::msg::Vector3 arg)
-  {
-    msg_.translation = std::move(arg);
-    return Init_Transform_rotation(msg_);
-  }
-
-private:
-  ::geometry_msgs::msg::Transform storage_;
-  ::geometry_msgs::msg::Transform & msg_;
-};
-
-}  // namespace geometry_msgs::msg::builder
-
-namespace geometry_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::geometry_msgs::msg::Transform>()
-{
-  return geometry_msgs::msg::builder::Init_Transform_translation();
-}
-}  // namespace geometry_msgs
 
 #endif  // SHIM__GEOMETRY_MSGS__MSG__DETAIL__TRANSFORM__STRUCT_HPP_

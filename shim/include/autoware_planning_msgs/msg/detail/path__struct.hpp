@@ -2,15 +2,11 @@
 #ifndef SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__PATH__STRUCT_HPP_
 #define SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__PATH__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -35,77 +31,5 @@ struct Path
   bool operator!=(const Path & other) const { return !(*this == other); }
 };
 }  // namespace autoware_planning_msgs::msg
-
-namespace autoware_planning_msgs::msg::builder
-{
-class Init_Path_right_bound
-{
-public:
-  explicit Init_Path_right_bound(::autoware_planning_msgs::msg::Path & msg) : msg_(msg) {}
-  ::autoware_planning_msgs::msg::Path right_bound(std::vector<geometry_msgs::msg::Point> arg)
-  {
-    msg_.right_bound = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::Path & msg_;
-};
-
-class Init_Path_left_bound
-{
-public:
-  explicit Init_Path_left_bound(::autoware_planning_msgs::msg::Path & msg) : msg_(msg) {}
-  Init_Path_right_bound left_bound(std::vector<geometry_msgs::msg::Point> arg)
-  {
-    msg_.left_bound = std::move(arg);
-    return Init_Path_right_bound(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::Path & msg_;
-};
-
-class Init_Path_points
-{
-public:
-  explicit Init_Path_points(::autoware_planning_msgs::msg::Path & msg) : msg_(msg) {}
-  Init_Path_left_bound points(std::vector<autoware_planning_msgs::msg::PathPoint> arg)
-  {
-    msg_.points = std::move(arg);
-    return Init_Path_left_bound(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::Path & msg_;
-};
-
-class Init_Path_header
-{
-public:
-  Init_Path_header() : msg_(storage_) {}
-  Init_Path_points header(std_msgs::msg::Header arg)
-  {
-    msg_.header = std::move(arg);
-    return Init_Path_points(msg_);
-  }
-
-private:
-  ::autoware_planning_msgs::msg::Path storage_;
-  ::autoware_planning_msgs::msg::Path & msg_;
-};
-
-}  // namespace autoware_planning_msgs::msg::builder
-
-namespace autoware_planning_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::autoware_planning_msgs::msg::Path>()
-{
-  return autoware_planning_msgs::msg::builder::Init_Path_header();
-}
-}  // namespace autoware_planning_msgs
 
 #endif  // SHIM__AUTOWARE_PLANNING_MSGS__MSG__DETAIL__PATH__STRUCT_HPP_

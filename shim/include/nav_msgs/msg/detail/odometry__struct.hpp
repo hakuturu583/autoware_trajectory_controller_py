@@ -2,15 +2,11 @@
 #ifndef SHIM__NAV_MSGS__MSG__DETAIL__ODOMETRY__STRUCT_HPP_
 #define SHIM__NAV_MSGS__MSG__DETAIL__ODOMETRY__STRUCT_HPP_
 
-// The real rosidl headers pull these in transitively and upstream code relies on it.
+// Same std headers as the rosidl generated headers (upstream relies on them).
 #include <algorithm>
 #include <array>
-#include <cmath>
-#include <math.h>
 #include <cstdint>
-#include <limits>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -35,77 +31,5 @@ struct Odometry
   bool operator!=(const Odometry & other) const { return !(*this == other); }
 };
 }  // namespace nav_msgs::msg
-
-namespace nav_msgs::msg::builder
-{
-class Init_Odometry_twist
-{
-public:
-  explicit Init_Odometry_twist(::nav_msgs::msg::Odometry & msg) : msg_(msg) {}
-  ::nav_msgs::msg::Odometry twist(geometry_msgs::msg::TwistWithCovariance arg)
-  {
-    msg_.twist = std::move(arg);
-    return std::move(msg_);
-  }
-
-private:
-  ::nav_msgs::msg::Odometry & msg_;
-};
-
-class Init_Odometry_pose
-{
-public:
-  explicit Init_Odometry_pose(::nav_msgs::msg::Odometry & msg) : msg_(msg) {}
-  Init_Odometry_twist pose(geometry_msgs::msg::PoseWithCovariance arg)
-  {
-    msg_.pose = std::move(arg);
-    return Init_Odometry_twist(msg_);
-  }
-
-private:
-  ::nav_msgs::msg::Odometry & msg_;
-};
-
-class Init_Odometry_child_frame_id
-{
-public:
-  explicit Init_Odometry_child_frame_id(::nav_msgs::msg::Odometry & msg) : msg_(msg) {}
-  Init_Odometry_pose child_frame_id(std::string arg)
-  {
-    msg_.child_frame_id = std::move(arg);
-    return Init_Odometry_pose(msg_);
-  }
-
-private:
-  ::nav_msgs::msg::Odometry & msg_;
-};
-
-class Init_Odometry_header
-{
-public:
-  Init_Odometry_header() : msg_(storage_) {}
-  Init_Odometry_child_frame_id header(std_msgs::msg::Header arg)
-  {
-    msg_.header = std::move(arg);
-    return Init_Odometry_child_frame_id(msg_);
-  }
-
-private:
-  ::nav_msgs::msg::Odometry storage_;
-  ::nav_msgs::msg::Odometry & msg_;
-};
-
-}  // namespace nav_msgs::msg::builder
-
-namespace nav_msgs
-{
-template <typename MessageType>
-auto build();
-template <>
-inline auto build<::nav_msgs::msg::Odometry>()
-{
-  return nav_msgs::msg::builder::Init_Odometry_header();
-}
-}  // namespace nav_msgs
 
 #endif  // SHIM__NAV_MSGS__MSG__DETAIL__ODOMETRY__STRUCT_HPP_
