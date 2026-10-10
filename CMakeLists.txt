@@ -12,14 +12,26 @@ option(AUTOWARE_TC_BUILD_PYTHON "Build the Python extension module" ON)
 
 include(cmake/Dependencies.cmake)
 
-set(TP ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
+# -----------------------------------------------------------------------------
+# Autoware sources: only the needed files, at pinned commits (scripts/fetch_upstream.py).
+# -----------------------------------------------------------------------------
+find_package(Python 3.9 REQUIRED COMPONENTS Interpreter)
+set(TP ${CMAKE_BINARY_DIR}/third_party)
+execute_process(
+  COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/fetch_upstream.py ${TP}
+  RESULT_VARIABLE fetch_result
+)
+if(NOT fetch_result EQUAL 0)
+  message(FATAL_ERROR "Failed to fetch the Autoware sources (scripts/fetch_upstream.py)")
+endif()
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/scripts/fetch_upstream.py)
+
 set(UNIVERSE ${TP}/universe)
 set(CORE ${TP}/core)
 set(UTILS ${TP}/utils)
 
-# -----------------------------------------------------------------------------
-# Autoware sources (vendored verbatim, see third_party/UPSTREAM.md)
-# -----------------------------------------------------------------------------
+# Upstream sources are compiled unchanged.
 # First-party sources: ROS 2 replacements and the ROS-free trajectory follower.
 set(FIRST_PARTY_SOURCES
   shim/src/rclcpp_shim.cpp
@@ -78,7 +90,7 @@ set(VENDORED_SOURCES
   ${UNIVERSE}/autoware_mpc_lateral_controller/src/qp_solver/qp_solver_osqp.cpp
 )
 
-# Vendored code compiles unchanged; its warnings are not ours to fix.
+# Upstream code compiles unchanged; its warnings are not ours to fix.
 set_source_files_properties(${VENDORED_SOURCES} PROPERTIES COMPILE_OPTIONS -w)
 
 add_library(autoware_control_core STATIC ${FIRST_PARTY_SOURCES} ${VENDORED_SOURCES})
@@ -106,7 +118,7 @@ target_include_directories(autoware_control_core SYSTEM
     ${UNIVERSE}/autoware_pid_longitudinal_controller/include
     ${UNIVERSE}/autoware_pure_pursuit/include
 )
-# Std headers the vendored headers expect to get transitively from ROS 2 (PUBLIC: every
+# Std headers the upstream headers expect to get transitively from ROS 2 (PUBLIC: every
 # TU including them needs it, see shim/include/shim_prelude.hpp).
 target_compile_options(autoware_control_core
   PUBLIC "SHELL:-include ${CMAKE_CURRENT_SOURCE_DIR}/shim/include/shim_prelude.hpp")
@@ -127,7 +139,7 @@ if(AUTOWARE_TC_BUILD_PYTHON)
 
   set(PKG autoware_trajectory_controller)
   install(TARGETS _core LIBRARY DESTINATION ${PKG} COMPONENT python)
-  # Default parameter files, taken from the vendored upstream packages.
+  # Default parameter files, taken from the upstream packages.
   install(
     FILES
       ${UNIVERSE}/autoware_trajectory_follower_node/param/trajectory_follower_node.param.yaml
@@ -138,6 +150,11 @@ if(AUTOWARE_TC_BUILD_PYTHON)
     DESTINATION ${PKG}/config
     COMPONENT python
   )
+  # The module contains Autoware code (Apache License 2.0): ship its license files.
+  foreach(repo universe core utils)
+    install(FILES ${TP}/${repo}/LICENSE DESTINATION ${PKG}/licenses
+      RENAME LICENSE.autoware_${repo} COMPONENT python)
+  endforeach()
 endif()
 
 # -----------------------------------------------------------------------------

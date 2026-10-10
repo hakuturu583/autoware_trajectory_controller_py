@@ -64,7 +64,7 @@ std::vector<T> resampleHorizonByZeroOrderHold(
 }
 
 // Copied from Controller::mergeLatLonHorizon (autoware_trajectory_follower_node,
-// third_party/universe/autoware_trajectory_follower_node/src/controller_node.cpp).
+// src/controller_node.cpp, fetched by scripts/fetch_upstream.py).
 std::optional<autoware_control_msgs::msg::ControlHorizon> merge_lat_lon_horizon(
   const tf::LateralHorizon & lateral_horizon, const tf::LongitudinalHorizon & longitudinal_horizon,
   const rclcpp::Time & stamp)

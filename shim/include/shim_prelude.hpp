@@ -1,4 +1,4 @@
-// Force-included into every vendored Autoware translation unit (see CMakeLists.txt).
+// Force-included into every translation unit using Autoware headers (see CMakeLists.txt).
 //
 // Upstream sources use these std facilities without including them, relying on what
 // rclcpp / tf2 / Eigen pull in transitively in a ROS 2 build. The shim does not
